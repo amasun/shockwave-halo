@@ -54,7 +54,7 @@ const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
 export function createAIPill(container, options = {}) {
   const o = {
     placeholder: 'Ask AI about this project', shortcut: 'k', model: 'Opus 5.5', mode: 'Ask',
-    bottom: 48, zIndex: 10, reducedMotion: 'auto',
+    bottom: 48, zIndex: 10, reducedMotion: 'auto', alwaysOpen: false,
     onTrigger: null, onSubmit: null, onOpen: null, onClose: null, ...options,
   };
   if (!document.getElementById('aip-css')) {
@@ -136,22 +136,30 @@ export function createAIPill(container, options = {}) {
     return true;
   }
   function close() {
-    if (st === 'closed' || st === 'closing') return;
+    if (o.alwaysOpen || st === 'closed' || st === 'closing') return;
     pFrom = p; st = 'closing'; st0 = performance.now();
     focusables.forEach(b => b.tabIndex = -1); pill.tabIndex = 0;
     kick(); o.onClose?.();
   }
-  function trigger() { const opened = open(); o.onTrigger?.({ opened, reduced: reduced() }); }
+  function trigger() {
+    if (o.alwaysOpen) { o.onTrigger?.({ opened: false, reduced: reduced() }); return; }
+    const opened = open(); o.onTrigger?.({ opened, reduced: reduced() });
+  }
+
+  if (o.alwaysOpen) {
+    st = 'open'; p = 1; apply(1, 1);
+    focusables.forEach(b => b.tabIndex = 0); pill.tabIndex = -1;
+  }
 
   const onPillFocus = e => { if (e.isTrusted && st === 'closed') trigger(); };
-  const onInputDown = () => { if (st === 'open') o.onTrigger?.({ opened: false, reduced: reduced() }); };
-  const onDocDown = e => { if (!el.contains(e.target)) close(); };
+  const onInputDown = () => { if (!o.alwaysOpen && st === 'open') o.onTrigger?.({ opened: false, reduced: reduced() }); };
+  const onDocDown = e => { if (!o.alwaysOpen && !el.contains(e.target)) close(); };
   const onKey = e => {
     if (o.shortcut && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === o.shortcut) {
       e.preventDefault(); if (st === 'closed' || st === 'closing') trigger(); else input.focus();
-    } else if (e.key === 'Escape' && el.contains(document.activeElement)) { close(); pill.focus({ preventScroll: true }); }
+    } else if (e.key === 'Escape' && !o.alwaysOpen && el.contains(document.activeElement)) { close(); pill.focus({ preventScroll: true }); }
   };
-  const onSubmit = e => { e.preventDefault(); const v = input.value.trim(); if (v) { o.onSubmit?.(v); input.value = ''; } };
+  const onSubmit = e => { e.preventDefault(); const v = input.value.trim(); if (v || o.alwaysOpen) { o.onSubmit?.(v); input.value = ''; } };
   pill.addEventListener('click', trigger);
   pill.addEventListener('focus', onPillFocus);
   input.addEventListener('pointerdown', onInputDown);
@@ -163,7 +171,10 @@ export function createAIPill(container, options = {}) {
     el, input,
     open: () => open(), close, trigger,
     /** Snap back to the pill instantly (no animation). */
-    reset() { st = 'closed'; p = 0; apply(0, 1); focusables.forEach(b => b.tabIndex = -1); pill.tabIndex = 0; },
+    reset() {
+      if (o.alwaysOpen) return;
+      st = 'closed'; p = 0; apply(0, 1); focusables.forEach(b => b.tabIndex = -1); pill.tabIndex = 0;
+    },
     get isOpen() { return st === 'open' || st === 'opening'; },
     destroy() {
       cancelAnimationFrame(raf); document.removeEventListener('pointerdown', onDocDown); document.removeEventListener('keydown', onKey); el.remove();

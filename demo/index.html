@@ -105,8 +105,10 @@
     transition: background-color .35s ease, border-color .35s ease, box-shadow .35s ease;
   }
   .area.point-cursor { cursor: crosshair; }
+  .area .aip { max-width: calc(100% - 28px); }
+  .area .aip-card { width: 100%; }
   .stage-inner {
-    position: absolute; inset: 0; padding: 20px 22px 110px;
+    position: absolute; inset: 0; padding: 20px 22px 132px;
     display: flex; flex-direction: column; gap: 14px;
   }
   .ws-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -430,9 +432,12 @@ const root = document.documentElement, area = $('#area');
 /* 1. Single Unified Floating Preview Window */
 const halo = createShockwaveHalo(area, { exclude: '.aip', onEnd: () => updateMode() });
 const pill = createAIPill(area, {
-  bottom: 24,
-  onTrigger: ({ opened }) => halo.trigger({ origin: pill.el, delay: opened ? 40 : 0 }),
-  onSubmit: text => console.log('ask:', text),
+  bottom: 20,
+  alwaysOpen: true,
+  onSubmit: text => {
+    if (text) console.log('ask:', text);
+    halo.trigger({ origin: pill.el });
+  },
 });
 halo.setOptions({ origin: pill.el });
 
@@ -648,9 +653,9 @@ function syncOriginUI() {
   area.classList.toggle('point-cursor', originMode === 'point');
 
   if (originMode === 'element') {
-    $('#trigger-tip').textContent = '当前为 DOM 元素模式：以右侧预览窗底部的 Ask AI 胶囊为起点，近边自动起弧。';
-    $('#stage-bar-hint').textContent = '持续悬浮预览窗 · 当前起点：DOM 元素 (Ask AI)';
-    $('#trigger-code').textContent = `const halo = createShockwaveHalo(area, { origin: pill.el, exclude: '.aip' });\npill.onTrigger = ({ opened }) => halo.trigger({ delay: opened ? 40 : 0 });`;
+    $('#trigger-tip').textContent = '当前为 DOM 元素模式：以右侧预览窗底部的输入卡片为起点，点击上箭头按钮即可触发光环。';
+    $('#stage-bar-hint').textContent = '持续悬浮预览窗 · 当前起点：DOM 元素 (输入框)';
+    $('#trigger-code').textContent = `const halo = createShockwaveHalo(area, { origin: pill.el, exclude: '.aip' });\npill.onSubmit = () => halo.trigger({ origin: pill.el });`;
   } else if (originMode === 'point') {
     $('#trigger-tip').textContent = '当前为点击坐标模式：直接点击右侧悬浮预览窗内任意位置，从点击处扩散成圆。';
     $('#stage-bar-hint').textContent = '持续悬浮预览窗 · 点击画布任意位置触发';
@@ -711,8 +716,7 @@ syncParams();
 /* Trigger helper for the single unified floating preview */
 function runFloatPreview() {
   if (originMode === 'element') {
-    pill.reset();
-    pill.trigger();
+    halo.trigger({ origin: pill.el });
   } else if (originMode === 'point') {
     const r = area.getBoundingClientRect();
     halo.trigger({ origin: { x: r.left + r.width * 0.5, y: r.top + r.height * 0.45 } });
