@@ -6,7 +6,7 @@
 
 **简体中文** · [English](README.md)
 
-[在线 Demo](https://amasun.github.io/shockwave-halo/) · [AI 接入](#让-ai-帮你接入或从零开始) · [可调整的内容](#可调整的内容) · [最佳实践](#最佳实践)
+[在线 Demo](https://amasun.github.io/shockwave-halo/) · [让 AI 接入](#让你的-ai-助手一键接入) · [可调整的内容](#可调整的内容) · [最佳实践](#最佳实践)
 
 <p>
   <img src="https://img.shields.io/badge/WebGL2-GLSL_ES_3.00-4f6bff?style=flat-square&logo=webgl&logoColor=white" alt="WebGL2" />
@@ -32,6 +32,32 @@
 > [!TIP]
 > **在线体验**：打开 [Shockwave Halo Demo](https://amasun.github.io/shockwave-halo/)，点击底部输入框即可看到效果；顶部工具栏支持实时切换起点、七套配色、明暗主题与减弱动效。
 
+## 让你的 AI 助手一键接入
+
+把下面这段复制给 **Cursor、Claude Code、Codex** 或任何编程助手即可。它适用于任何触发时机，不只是 AI 输入框：助手会先看你的项目，建议值得标记的时刻，再只接入你选中的那些。提示词用英文写，AI 都能理解，你也可以直接用中文补充自己的需求。
+
+```text
+Add shockwave-halo (https://github.com/amasun/shockwave-halo) to my web app. Read its README first.
+
+It is a faint halo of light that sweeps across the page from a chosen spot and gently bends the content as it passes: a visual punctuation mark for one moment. It must not change how the page looks or behaves otherwise, and nothing should run while the page is at rest.
+
+1. Look at my app and suggest 2-4 moments worth marking, for example: focusing or sending an AI or search input, submitting a form, a successful save or publish, switching mode, view or route, a notification arriving, a button press. For each one, say which element or point the halo should start from.
+2. Wait for me to pick, then wire up only those. Start each halo from the element or point that caused it.
+3. Mount it on a non-scrolling content container, keep toolbars clear, follow my light/dark mode, and respect reduced motion.
+4. When you are done, tell me in plain words how to change the trigger, the starting point, the color and the strength.
+```
+
+已经知道要什么？用自己的话说就行：
+
+- *“支付成功时触发光环，从确认卡片上发出。”*
+- *“用户按 ⌘K 打开命令面板时，用 Frost 配色。”*
+- *“用户切换到专注模式时触发，从他按下的那个按钮发出。”*
+- *“每次保存成功时从“保存”按钮发出，并且别盖到工具栏。”*
+
+需要更精细的控制？请看下文的[详细提示词](#让-ai-帮你接入或从零开始)。
+
+---
+
 ## 包含什么
 
 两个**零依赖**、**不挑框架**的原生 ES 模块（React、Vue、Svelte 或纯 HTML 都能直接用）：
@@ -48,8 +74,9 @@
 不用自己研究代码或看懂参数。你可以直接抄下面任意一句发给 **Claude Code / Codex / Cursor**，或者展开下方完整提示词整段复制给 AI，它会一步步确认你的需求并完成改造。
 
 **常见场景示例：**
-- *“我的博客是暗色主题，帮我接入 shockwave-halo，用 `Frost` 配色，只在点击搜索框时从输入框位置触发。”*
-- *“我有个营销页和后台系统，帮我评估哪些页面适合加 shockwave-halo，只在关键按钮点击时触发，后台列表保持安静。”*
+- *“我的博客是暗色主题，帮我接入 shockwave-halo，用 `Frost` 配色，只在聚焦搜索框时触发。”*
+- *“我有个营销页和后台系统，帮我评估哪些地方适合加 shockwave-halo：关键按钮要，后台列表不要。”*
+- *“下单成功时触发，从“支付”按钮发出，用我们的品牌蓝。”*
 - *“我在写一个 SwiftUI iOS App，请按「从零开始」里的配方用 Metal 帮我实现一套同样的光环效果。”*
 
 ### 接入提示词
@@ -60,27 +87,27 @@
 <summary><strong>点击展开并复制「接入提示词」</strong></summary>
 
 ```text
-Add the shockwave halo from https://github.com/amasun/shockwave-halo to my web app: when the AI input is clicked or focused, a faint halo of light sweeps across the page's content area from the input and fades out, bending the page a few pixels as it passes. Use the library as it is; do not copy its shader into my code. Do not change what the page does or how it looks at rest.
+Add the shockwave halo from https://github.com/amasun/shockwave-halo to my web app: when a moment I choose happens (by default, the AI input being clicked or focused), a faint halo of light sweeps across the page's content area from where it happened and fades out, bending the page a few pixels as it passes. Use the library as it is; do not copy its shader into my code. Do not change what the page does or how it looks at rest.
 
 First read the library's README (https://github.com/amasun/shockwave-halo#readme), then the commented option lists at the top of https://github.com/amasun/shockwave-halo/blob/main/shockwave-halo.js (`DEFAULTS`) and https://github.com/amasun/shockwave-halo/blob/main/ai-pill.js (the `o = {...}` block) for every option and its default. Then look at my app and tell me, in a short list:
-- the AI input (or whatever should trigger the halo), and what opens or focuses it;
+- the moments in my app that could trigger it (an AI or search input being focused or sent, a form submit, a success or error message, a switch of mode, view or route, a notification arriving, a button press), and the element or event behind each;
 - the content area the halo should cover: a non-scrolling element that holds the page under the toolbars, its corner radius, and whether it has `overflow: hidden`;
 - any toolbars, and which edges of that area sit under one;
 - how dark mode is switched (`<html data-theme>`, a `.dark` class, or something else);
 - my framework and bundler.
 
 Then ask me, one at a time, offering the default each time:
-1. Trigger: focusing or clicking the AI input (default), a keyboard shortcut, sending a message, the AI starting to answer, or something else; and re-trigger while running: restart (default) or ignore.
-2. Origin: the AI input (default), the point that was clicked, the middle of the area, or an edge.
+1. Trigger: which of those moments should fire it (default: focusing or clicking the AI input, if there is one), or others such as a keyboard shortcut, sending a message, the AI starting to answer, a successful save or publish, entering a focused view; and re-trigger while running: restart (default) or ignore.
+2. Origin: the element that caused it (default), the point that was clicked, the middle of the area, or an edge.
 3. Palette: Aurora (default), Halo, Frost, Spark, or my brand colors (then derive four rings inside to outside, with a brighter dark version and a softer light version).
 4. Layers: bend, color split, edge refraction and line glints are all on by default; ask whether to turn any off.
-5. Input: keep my AI input as it is (default), or replace it with the library's `ai-pill.js`.
+5. Input (only if the trigger is an AI input): keep my AI input as it is (default), or replace it with the library's `ai-pill.js`.
 
 Wait for my go-ahead, then integrate it:
 - Install: `npm i github:amasun/shockwave-halo#v1.0.0 html-to-image`, then `import { createShockwaveHalo } from 'shockwave-halo'` and pass `snapshot: (el, opts) => toCanvas(el, opts)` with `toCanvas` from `html-to-image`. Without a bundler, import from `https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/shockwave-halo.js` instead.
 - Create the halo on the content area when it mounts and call `destroy()` when it unmounts (in React, a `useEffect` with a ref; in Vue, `onMounted` / `onBeforeUnmount`; in Svelte, an action).
-- Call `halo.trigger()` from the trigger I chose. If the input animates when it opens, pass `delay: 40`.
-- Put the AI input, and anything else that animates or must stay above the halo, in `exclude` (a CSS selector), and give it a `z-index` above the halo's (`zIndex` option, default 5).
+- Call `halo.trigger({ origin })` from each trigger I chose, passing the element or point that caused it. If that element animates when it opens, pass `delay: 40`.
+- Put anything that animates or must stay above the halo (an AI input, a floating button) in `exclude` (a CSS selector), and give it a `z-index` above the halo's (`zIndex` option, default 5).
 - Set `bevelEdges` to the edges that are not under a toolbar.
 - Set `theme` so it follows my dark mode: `'auto'` covers `<html data-theme>`, `.dark` and the system setting; otherwise pass a function.
 - Mark SVG strokes that are lines (graph edges, dividers), but not icons, with `data-halo-line` so they glint.
@@ -265,9 +292,7 @@ const halo = createShockwaveHalo(area, {
 把 [`shockwave-halo.js`](shockwave-halo.js)（以及可选的 [`ai-pill.js`](ai-pill.js)）直接放进你的项目目录即可，无任何外部依赖。
 
 > [!NOTE]
-> **一句话让 AI 帮你装好**：如果你正在用 Cursor / Claude Code / Codex，可以直接对它说：  
-> *“参考 https://github.com/amasun/shockwave-halo 帮我接入 shockwave-halo：挂载在主内容容器上，点击或聚焦 AI 输入框时触发 `Aurora` 光环，保持工具栏不被遮挡。”*  
-> 需要更精细的引导？请看下文 [让 AI 帮你接入或从零开始](#让-ai-帮你接入或从零开始)。
+> 在用 AI 编程助手？可以跳过手动步骤，直接用上面[可复制的提示词](#让你的-ai-助手一键接入)。
 
 ---
 ## 快速上手
