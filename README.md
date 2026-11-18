@@ -1,24 +1,46 @@
+<div align="center">
+
 # Shockwave Halo
 
-[在线 Demo](https://amasun.github.io/shockwave-halo/) · [接入提示词](prompts/integrate-prompt.md) · [规格提示词](prompts/spec-prompt.md) · MIT
+点击或聚焦输入框时，一道淡淡的光环从起点扫过页面并淡出：经过时像玻璃透镜一样把页面轻轻弯折几个像素，带一丝轻微色散，同时让线条和边框泛起微光。支持明暗两种模式。
 
-一道淡淡的光环从某处扫过页面并淡出：经过时把页面弯折几个像素，带一丝色散，线条和边框会闪一下。支持明暗两种模式。
+**简体中文** · [English](README.en.md)
 
-两个零依赖、不绑定框架的 ES 模块：
+[在线 Demo](https://amasun.github.io/shockwave-halo/) · [接入提示词](prompts/integrate-prompt.md) · [从零开始](prompts/spec-prompt.md)
 
-| 文件 | 作用 |
-|---|---|
-| `shockwave-halo.js` | 光环本体：WebGL2 单 pass 着色器 + 页面快照（html-to-image），拿不到快照时自动降级为只叠加色环 |
-| `ai-pill.js` | 可选：胶囊式 AI 输入框，点开弹成卡片，带转动的金属边 |
-| `demo/index.html` | 完整示例（起点切换、四套配色、明暗、减弱动效） |
+<p>
+  <img src="https://img.shields.io/badge/WebGL2-GLSL_ES_3.00-4f6bff?style=flat-square&logo=webgl&logoColor=white" alt="WebGL2" />
+  <img src="https://img.shields.io/badge/ES_Modules-Zero_Dependencies-12a26b?style=flat-square&logo=javascript&logoColor=white" alt="ES Modules" />
+  <img src="https://img.shields.io/badge/Framework-Agnostic-8b5cf6?style=flat-square" alt="Framework Agnostic" />
+  <img src="https://img.shields.io/badge/Theme-Light_%26_Dark-18181c?style=flat-square" alt="Light & Dark" />
+  <img src="https://img.shields.io/badge/Version-v1.0.0-0f172a?style=flat-square" alt="v1.0.0" />
+  <img src="https://img.shields.io/badge/License-MIT-64748b?style=flat-square" alt="MIT License" />
+</p>
 
-**在线 Demo：** https://amasun.github.io/shockwave-halo/ （点底部输入框；工具栏可以切换起点、配色、明暗和减弱动效）
+</div>
+
+---
+
+> [!TIP]
+> **在线体验**：打开 [Shockwave Halo Demo](https://amasun.github.io/shockwave-halo/)，点一下底部的输入框就能看到效果；顶部工具栏可以切换起点位置、四套配色、明暗主题和减弱动效。
+
+## 包含什么
+
+两个**零依赖**、**不挑框架**的原生 JS 模块（React、Vue、Svelte 或纯 HTML 都能直接用）：
+
+| 文件 | 角色 | 通俗说明 |
+|---|---|---|
+| [`shockwave-halo.js`](shockwave-halo.js) | 核心光环 | 负责光环动画、页面弯折、色散和边框高光；如果页面拿不到截图，会自动退化成只显示彩色光环，不影响使用 |
+| [`ai-pill.js`](ai-pill.js) | 可选输入框 | 胶囊式 AI 输入框，点开会弹性展开成卡片，边缘带一圈转动的金属高光 |
+| [`demo/index.html`](demo/index.html) | 完整示例 | 展示起点切换、四套配色（`Aurora` / `Halo` / `Frost` / `Spark`）、明暗切换与减弱动效 |
+
+---
 
 ## 安装
 
-三种方式任选其一。
+三种方式任选其一：
 
-**1. CDN（不需要构建工具）**
+### 1. CDN（不用配置打包工具，直接引入）
 
 ```html
 <script type="module">
@@ -27,7 +49,7 @@
 </script>
 ```
 
-**2. npm（从 GitHub 安装）**
+### 2. npm（从 GitHub 安装）
 
 ```bash
 npm i github:amasun/shockwave-halo#v1.0.0 html-to-image
@@ -38,112 +60,59 @@ import { createShockwaveHalo } from 'shockwave-halo';
 import { createAIPill } from 'shockwave-halo/ai-pill';   // 可选
 import { toCanvas } from 'html-to-image';
 
-const halo = createShockwaveHalo(area, { snapshot: (el, opts) => toCanvas(el, opts) });
+const halo = createShockwaveHalo(area, {
+  snapshot: (el, opts) => toCanvas(el, opts),
+});
 ```
 
-**3. 直接复制**：把 `shockwave-halo.js`（以及可选的 `ai-pill.js`）复制进项目。两个文件都没有任何依赖。
+### 3. 直接复制文件
 
-## 让 AI 帮你接入
+把 [`shockwave-halo.js`](shockwave-halo.js)（以及可选的 [`ai-pill.js`](ai-pill.js)）直接放进你的项目目录即可，没有任何第三方依赖。
 
-`prompts/` 里有两份提示词，复制给 Claude Code、Codex、Cursor 等编码助手即可：
+---
 
-| 提示词 | 用途 |
-|---|---|
-| [prompts/integrate-prompt.md](prompts/integrate-prompt.md) | **接入现成组件**：AI 先看你的项目，问你触发方式、起点、配色、效果层和要不要换输入框，然后把本组件接进来（React、Vue、Svelte、原生、Electron、Tauri 都行） |
-| [prompts/spec-prompt.md](prompts/spec-prompt.md) | **从零实现**：完整的效果规格（时间曲线、色环公式、四套配色、弯折和高光算法、各平台实现建议）。适合 iOS（Metal）、Android（AGSL）、Flutter、Rust 等非 Web 平台 |
+## 让 AI 帮你接入或复刻
 
-## 本地运行 Demo
+不用自己研究代码或看懂参数。`prompts/` 目录下准备了两份提示词，**直接整段复制发给 Claude Code、Codex、Cursor 等 AI 助手**，它会主动问你几个简单问题并帮你完成：
 
-```bash
-git clone https://github.com/amasun/shockwave-halo.git
-cd shockwave-halo
-python3 -m http.server 8788
-```
+| 提示词 | 什么时候用 | AI 会帮你做什么 |
+|---|---|---|
+| [接入提示词](prompts/integrate-prompt.md) | **你已经有网页项目**，想直接用现成组件 | AI 先看一遍你的项目，问你触发方式、起点、配色和要不要换输入框，然后直接把本组件接进去（支持 React / Vue / Svelte / 原生 / Electron / Tauri） |
+| [从零开始](prompts/spec-prompt.md) | **你在做手机 App、桌面客户端**，或想在自己的技术栈里从零重写 | 文档里写好了完整的动画曲线、配色和算法配方，AI 会照着它从零写出对应版本（适合 iOS Metal、Android AGSL、Flutter、Rust 等） |
 
-然后打开 http://localhost:8788/demo/ 。ES 模块不能从 `file://` 加载，所以需要一个静态服务器。
+---
 
-## 最小用法
+## 快速上手
+
+### 最小用法（3 步跑起来）
 
 ```js
 import { createShockwaveHalo } from './shockwave-halo.js';
 
-const area = document.querySelector('#content');           // 光环的作用区域（工具栏放在它外面）
+const area = document.querySelector('#content');   // 光环扫过的区域（把工具栏放在这个区域外面）
 const input = document.querySelector('#ai-input');
 
 const halo = createShockwaveHalo(area, { origin: input });
 input.addEventListener('focus', () => halo.trigger());
 ```
 
-要让光环弯折页面，还需要 html-to-image：可以在页面里用 `<script>` 引入（全局变量 `htmlToImage`），也可以什么都不做，组件会按需从 jsDelivr 加载 `html-to-image@1.11.11`。用打包工具时建议像上面 npm 那样通过 `snapshot` 选项自己传入。
+> [!NOTE]
+> 想让光环经过时把页面“弯折”起来，需要 `html-to-image` 来给页面拍快照：你可以在页面里用 `<script>` 提前引入（全局变量 `htmlToImage`），也可以什么都不做——组件会在需要时自动从 jsDelivr 加载 `html-to-image@1.11.11`。如果用了 Vite / Webpack 等打包工具，建议像上面的 npm 示例那样通过 `snapshot` 选项自己传入。
 
-## 搭配胶囊输入框
+### 搭配胶囊输入框
 
 ```js
 import { createShockwaveHalo } from './shockwave-halo.js';
 import { createAIPill } from './ai-pill.js';
 
-const halo = createShockwaveHalo(area, { exclude: '.aip' });   // 输入框会动，不放进快照
+const halo = createShockwaveHalo(area, { exclude: '.aip' });   // 输入框自己会动，拍快照时排除它
 const pill = createAIPill(area, {
   onTrigger: ({ opened }) => halo.trigger({ origin: pill.el, delay: opened ? 40 : 0 }),
   onSubmit: text => sendToAI(text),
 });
 ```
 
-## `createShockwaveHalo(area, options)`
-
-`area` 是光环所在区域，光环会被裁剪在区域内，并沿用它的圆角。区域需要 `overflow: hidden`。
-
-| 选项 | 默认值 | 说明 |
-|---|---|---|
-| `origin` | `'bottom'` | 光环起点：一个元素（靠近边缘时从那条边升起一道弧，否则从元素中心扩散成圆）、`{x, y}`（视口坐标，比如点击位置）、`'bottom' \| 'top' \| 'left' \| 'right' \| 'center'` |
-| `palette` | `'Aurora'` | `'Aurora' \| 'Halo' \| 'Frost' \| 'Spark'`，或自定义 `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }`（色环从内到外） |
-| `theme` | `'auto'` | `'auto'` 跟随 `<html data-theme>` / `.dark` / 系统设置；也可以填 `'light'`、`'dark'`，或传一个返回其中之一的函数。切换主题时颜色会渐变过渡 |
-| `layers` | 全开 | `{ bend, split, bevel, glints }`：弯折、色散、边缘玻璃折射、线条高光。色环始终开启 |
-| `bevelEdges` | `['left','right','bottom']` | 哪些边当作玻璃边（贴着工具栏的那条边不要放进来） |
-| `duration` | `1000` | 毫秒 |
-| `ringWidth` | `110` | 单个色环宽度 w（px） |
-| `bendPx` | `7` | 透镜强度（px） |
-| `arcDepth` | 边长的 ⅔ | 从边缘起点时，圆心离那条边的距离 |
-| `retrigger` | `'restart'` | 运行中再次触发：`'restart'` 重新开始，`'ignore'` 忽略 |
-| `reducedMotion` | `'auto'` | 减弱动效时：不弯折、不色散、不闪线，光环以一半强度原地淡入淡出（600ms） |
-| `exclude` | `null` | CSS 选择器：不放进快照的元素（会动的、或者盖在光环上方的） |
-| `svgLines` | `'[data-halo-line]'` | 哪些 SVG 描边算作“线条”参与高光。默认只认带这个属性的，图标永远不会亮 |
-| `snapshot` | `'auto'` | `'auto'`（html-to-image）、`false`（只叠加色环），或自定义 `async (el, opts) => canvas` |
-| `watch` | `true` | 区域内 DOM 变化后，在空闲时重新拍快照 |
-| `maxDpr` | `2` | 像素比上限 |
-| `zIndex` | `5` | 画布层级。想让某个元素盖在光环上面（比如输入框），给它更高的层级 |
-| `onStart` / `onEnd` | — | 回调 |
-
-### 返回的实例
-
-```js
-halo.trigger({ origin?, delay? })  // 返回 Promise<boolean>
-halo.stop()
-halo.invalidate()                  // 页面变了，空闲时重新拍快照（watch 已经覆盖大多数情况）
-halo.capture()                     // 立刻拍快照，返回 { ok, mode, ms }
-halo.setOptions({ palette: 'Frost', layers: { split: false } })
-halo.running                       // 是否正在运行
-halo.mode                          // 'snapshot' | 'overlay' | 'overlay (scrolled)' | 'overlay (no WebGL2)'
-halo.destroy()
-halo.debugHold(0.2)                // 调试：把动画冻结在 t=0.2；传 null 恢复
-```
-
-## `createAIPill(container, options)`
-
-| 选项 | 默认值 |
-|---|---|
-| `placeholder` | `'Ask AI about this project'` |
-| `shortcut` | `'k'`（⌘K / Ctrl K），传 `null` 关闭快捷键 |
-| `model` / `mode` | `'Opus 5.5'` / `'Ask'`（两个选择器上显示的文字） |
-| `bottom` | `48`（距容器底部的像素） |
-| `onTrigger({ opened, reduced })` | 点击或聚焦胶囊、按快捷键、在已打开的输入框里点击时调用 |
-| `onSubmit(text)`、`onOpen`、`onClose` | — |
-
-返回 `{ el, input, open(), close(), trigger(), reset(), isOpen, destroy() }`。
-
-颜色可以用 CSS 变量覆盖：`--aip-bg --aip-text --aip-muted --aip-faint --aip-line --aip-accent --aip-send --aip-send-fg --aip-shadow`。祖先元素带 `[data-theme="dark"]` 或 `.dark` 时自动切到暗色。
-
-## React 示例
+### 在 React / Vue / Svelte 中使用
 
 ```jsx
 function useShockwaveHalo(ref, options) {
@@ -157,20 +126,98 @@ function useShockwaveHalo(ref, options) {
 
 const area = useRef(null);
 const halo = useShockwaveHalo(area, { exclude: '.ai-input' });
-<main ref={area}>…<input className="ai-input" onFocus={() => halo.current.trigger()} /></main>
+
+<main ref={area}>
+  …
+  <input className="ai-input" onFocus={() => halo.current.trigger()} />
+</main>
 ```
 
-Vue、Svelte 同理：挂载时创建，卸载时调 `destroy()`。
+Vue、Svelte 的用法也一样：页面挂载时创建，卸载时调用 `destroy()` 清理即可。
 
-## 原理与开销
+### 本地运行 Demo
 
-- **静止时零开销**：画布隐藏，不跑 requestAnimationFrame。只在区域内容变化后的空闲时间拍一次快照（约 60–200ms，主线程）。
-- **触发时**：用缓存的快照（如果页面变了就先补拍一张），然后跑 1 秒全屏片元着色器。光环带以外的像素输出透明，直接露出下面的真实页面。
-- **线条高光**：根据 DOM 里每个边框的位置和宽度，单独画一张“黑底白线”的遮罩，所以 1px 的边框只亮 1px，文字和图标不会亮。
+```bash
+git clone https://github.com/amasun/shockwave-halo.git
+cd shockwave-halo
+python3 -m http.server 8788
+```
 
-## 限制
+然后用浏览器打开 `http://localhost:8788/demo/`（浏览器安全限制不允许直接双击 `html` 通过 `file://` 加载 ES 模块，所以需要起一个本地静态服务）。
 
-- 需要 WebGL2。没有的话只叠加色环，不弯折。
-- html-to-image 拍到的是克隆出来的 DOM：跨域图片和字体需要同源或已内联，`backdrop-filter` 不一定靠谱。
-- 克隆会丢掉滚动位置，所以区域或它的子元素滚动过时，那一次会自动降级为只叠加色环。建议把光环挂在不会滚动的外框上。
-- 光环运行的 1 秒内显示的是触发时的快照。期间页面如果变了，光环带里会是旧画面（带外不受影响）。
+---
+
+## API 参考
+
+### `createShockwaveHalo(area, options)`
+
+`area` 是光环作用的容器。光环会被裁剪在容器范围内，并自动沿用它的圆角（记得给容器加上 `overflow: hidden`）。
+
+<details>
+<summary><strong>展开查看全部配置项（options）</strong></summary>
+
+| 选项 | 默认值 | 说明 |
+|---|---|---|
+| `origin` | `'bottom'` | 光环从哪出发：传一个元素（靠近边缘时从那条边升起一道弧，否则从元素中心扩散成圆）、`{x, y}`（视口坐标，如点击位置），或 `'bottom' \| 'top' \| 'left' \| 'right' \| 'center'` |
+| `palette` | `'Aurora'` | `'Aurora' \| 'Halo' \| 'Frost' \| 'Spark'`，或自定义 `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }`（四圈颜色由内到外） |
+| `theme` | `'auto'` | `'auto'` 自动跟随 `<html data-theme>` / `.dark` / 系统深浅色；也可传 `'light'`、`'dark'` 或返回其一的函数。切换主题时颜色会平滑过渡 |
+| `layers` | 全开 | `{ bend, split, bevel, glints }`：页面弯折、色散、边缘玻璃折射、线条高光（彩色光环始终开启） |
+| `bevelEdges` | `['left','right','bottom']` | 哪些边作为玻璃边缘参与折射（贴着工具栏的那条边不要放进来） |
+| `duration` | `1000` | 动画总时长（毫秒） |
+| `ringWidth` | `110` | 单个色环宽度 `w`（像素） |
+| `bendPx` | `7` | 透镜弯折强度（像素） |
+| `arcDepth` | 边长的 ⅔ | 从边缘出发时，圆心离该边缘的距离 |
+| `retrigger` | `'restart'` | 动画还没结束时再次触发：`'restart'` 重新开始，`'ignore'` 忽略 |
+| `reducedMotion` | `'auto'` | 系统开启“减弱动态效果”时：关闭弯折、色散与闪线，光环以一半强度原地淡入淡出（`600ms`） |
+| `exclude` | `null` | CSS 选择器：拍快照时跳过哪些元素（例如会动的输入框，或盖在光环上方的元素） |
+| `svgLines` | `'[data-halo-line]'` | 哪些 SVG 线条参与高光闪烁。默认只亮带这个属性的线条，图标不会误亮 |
+| `snapshot` | `'auto'` | `'auto'`（自动用 `html-to-image`）、`false`（只要彩色光环，不弯折页面），或自定义 `async (el, opts) => canvas` |
+| `watch` | `true` | 区域内容发生变化后，在浏览器空闲时自动更新快照 |
+| `maxDpr` | `2` | 最高渲染清晰度（像素比上限） |
+| `zIndex` | `5` | 光环画布层级。想让输入框等元素盖在光环上面，给它设更高的 `z-index` 即可 |
+| `onStart` / `onEnd` | — | 动画开始 / 结束时的回调 |
+
+</details>
+
+#### 返回的实例方法
+
+```js
+halo.trigger({ origin?, delay? })  // 触发光环，返回 Promise<boolean>
+halo.stop()                        // 立刻停止动画
+halo.invalidate()                  // 告诉组件页面变了，空闲时重拍快照（开启 watch 时通常不用手动调）
+halo.capture()                     // 立刻拍一次快照，返回 { ok, mode, ms }
+halo.setOptions({ palette: 'Frost', layers: { split: false } })
+halo.running                       // 当前是否正在播放
+halo.mode                          // 'snapshot' | 'overlay' | 'overlay (scrolled)' | 'overlay (no WebGL2)'
+halo.destroy()                     // 销毁组件并移除监听
+halo.debugHold(0.2)                // 调试用：把动画定格在 t=0.2；传 null 恢复播放
+```
+
+### `createAIPill(container, options)`
+
+| 选项 | 默认值 | 说明 |
+|---|---|---|
+| `placeholder` | `'Ask AI about this project'` | 输入框提示文字 |
+| `shortcut` | `'k'` | 快捷键（`⌘K` / `Ctrl K`），传 `null` 关闭 |
+| `model` / `mode` | `'Opus 5.5'` / `'Ask'` | 两个下拉按钮上显示的文字 |
+| `bottom` | `48` | 距离容器底部的像素高度 |
+| `onTrigger({ opened, reduced })` | — | 点击或聚焦胶囊、按快捷键、在已打开输入框内点击时触发 |
+| `onSubmit(text)` / `onOpen` / `onClose` | — | 提交文本与展开/收起回调 |
+
+- **返回实例**：`{ el, input, open(), close(), trigger(), reset(), isOpen, destroy() }`
+- **自定义配色**：可通过 CSS 变量覆盖颜色：`--aip-bg`、`--aip-text`、`--aip-muted`、`--aip-faint`、`--aip-line`、`--aip-accent`、`--aip-send`、`--aip-send-fg`、`--aip-shadow`。祖先元素带有 `[data-theme="dark"]` 或 `.dark` 时会自动切换成暗色外观。
+
+---
+
+## 工作原理与性能开销
+
+- **平时零开销**：不触发时画布完全隐藏，不跑动画循环。只在页面内容变动后的浏览器空闲时间拍一次快照（主线程约 `60–200ms`）。
+- **触发时只画 1 秒**：直接复用缓存好的快照（如果页面刚变过就先补拍一张），跑 1 秒 GPU 着色器。光环带以外的像素完全透明，直接透出下面的真实网页。
+- **线条高光不误伤文字**：组件会根据页面里每条边框的位置和粗细，单独画一张“黑底白线”的遮罩，所以 `1px` 的细边框只会亮 `1px`，旁边的文字和图标都不会跟着亮。
+
+## 使用限制
+
+- **需要 WebGL2**：如果浏览器不支持 WebGL2，会自动降级为只叠加彩色光环，不做页面弯折。
+- **截图克隆的限制**：`html-to-image` 依赖克隆页面 DOM，跨域图片和字体需要同源或已内联，`backdrop-filter` 毛玻璃效果不一定能完全还原。
+- **滚动区域会自动简化**：因为克隆 DOM 会丢失滚动条位置，如果作用区域或里面的元素被滚动过，那一次触发会自动退化成“只叠加色环”。建议把光环挂在外面那层不滚动的框上。
+- **动画期间的画面快照**：光环扫过的 1 秒内，光环带里的像素使用的是触发那一刻的画面；这 1 秒内页面如果有局部变化，光环带里会保留旧画面（光环带外面不受影响）。

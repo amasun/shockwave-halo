@@ -1,4 +1,4 @@
-# Spec prompt（从零实现）
+# 从零开始提示词（Spec Prompt）
 
 把下面这段交给 AI 编码助手，它会先查看你的应用，逐个问你几个问题，然后在你自己的代码和设计系统里**从零实现**这个效果。iOS、Android、Flutter、Rust 等非 Web 平台用它。Web 项目想直接用现成组件，请看 [integrate-prompt.md](integrate-prompt.md)。
 
