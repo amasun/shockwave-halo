@@ -2,11 +2,11 @@
 
 # Shockwave Halo
 
-When you click or focus an input, a faint halo of light sweeps across the page and fades out—gently bending the page like a glass lens as it passes, with a trace of color split and a subtle glint on lines and borders. Supports both light and dark modes, with **zero idle cost**.
+**Lens-bending light halo for web UIs** — When you click or focus an input, a faint halo sweeps across the page and fades out, gently bending content like a glass lens with subtle color split and border glints. **Zero dependencies, framework-agnostic, and zero idle cost.**
 
 [简体中文](README.md) · **English**
 
-[Live Demo](https://amasun.github.io/shockwave-halo/) · [Integrate Prompt](#integrate-prompt) · [Build from Scratch](#build-from-scratch)
+[Live Demo](https://amasun.github.io/shockwave-halo/) · [Best Practices](#best-practices) · [Integrate Prompt](#integrate-prompt) · [Build from Scratch](#build-from-scratch)
 
 <p>
   <img src="https://img.shields.io/badge/WebGL2-GLSL_ES_3.00-4f6bff?style=flat-square&logo=webgl&logoColor=white" alt="WebGL2" />
@@ -28,28 +28,19 @@ When you click or focus an input, a faint halo of light sweeps across the page a
 
 Two **zero-dependency**, **framework-agnostic** ES modules (works with React, Vue, Svelte, or plain HTML):
 
-| File | Role | Plain Summary |
+| File | Role | Summary |
 |---|---|---|
-| [`shockwave-halo.js`](shockwave-halo.js) | Core Halo | Drives the halo sweep, page bend, color split, and border glints; if a page snapshot isn't available, it gracefully falls back to color rings only |
-| [`ai-pill.js`](ai-pill.js) | Optional Input | A pill-shaped AI input that springs open into a card with a turning metal highlight border |
-| [`demo/index.html`](demo/index.html) | Full Demo | Interactive showcase with origin switching, 4 palettes (`Aurora` / `Halo` / `Frost` / `Spark`), light/dark mode, and reduced motion |
+| [`shockwave-halo.js`](shockwave-halo.js) | Core Halo | Drives the halo sweep, lens bend, color split, and border glints; falls back gracefully to color rings only when a snapshot isn't available |
+| [`ai-pill.js`](ai-pill.js) | Optional Input | Pill-shaped AI input that springs open into a card with a turning metal highlight border |
+| [`demo/index.html`](demo/index.html) | Full Demo | Interactive showcase with origin switching, 4 palettes, light/dark mode, and reduced motion |
 
 ---
 
 ## Installation
 
-Pick any of the three ways below:
+Pick any of the three ways below, or hand the one-liner directly to your AI coding agent.
 
-### 1. CDN (no build tools needed)
-
-```html
-<script type="module">
-  import { createShockwaveHalo } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/shockwave-halo.js';
-  import { createAIPill } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/ai-pill.js'; // optional
-</script>
-```
-
-### 2. npm (install from GitHub)
+### 1. npm (install from GitHub)
 
 ```bash
 npm i github:amasun/shockwave-halo#v1.0.0 html-to-image
@@ -65,15 +56,209 @@ const halo = createShockwaveHalo(area, {
 });
 ```
 
+### 2. CDN (no build tools needed)
+
+```html
+<script type="module">
+  import { createShockwaveHalo } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/shockwave-halo.js';
+  import { createAIPill } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/ai-pill.js'; // optional
+</script>
+```
+
 ### 3. Copy the Files
 
 Copy [`shockwave-halo.js`](shockwave-halo.js) (and optionally [`ai-pill.js`](ai-pill.js)) directly into your project. Both files have zero external dependencies.
+
+> [!NOTE]
+> **Tell your coding agent**: Using Cursor, Claude Code, or Codex? You can just say:  
+> *"Add shockwave-halo from https://github.com/amasun/shockwave-halo to my main content container, trigger the `Aurora` halo when focusing or clicking the AI input, and keep toolbars clear."*  
+> Need finer control? See [Let AI Wire It Up or Build It from Scratch](#let-ai-wire-it-up-or-build-it-from-scratch) below.
+
+---
+
+## Quick Start
+
+### Minimal Usage (3 steps)
+
+```js
+import { createShockwaveHalo } from './shockwave-halo.js';
+
+const area = document.querySelector('#content');   // area the halo sweeps across (keep toolbars outside)
+const input = document.querySelector('#ai-input');
+
+const halo = createShockwaveHalo(area, { origin: input });
+input.addEventListener('focus', () => halo.trigger());
+```
+
+> [!NOTE]
+> To bend the page underneath, the halo needs `html-to-image` to take a snapshot: you can load it with a `<script>` tag (global `htmlToImage`), or do nothing and the component will automatically fetch `html-to-image@1.11.11` from jsDelivr when needed. If you use a bundler like Vite or Webpack, passing `snapshot` explicitly (as in the npm example above) is recommended.
+
+### With the AI Pill Input
+
+```js
+import { createShockwaveHalo } from './shockwave-halo.js';
+import { createAIPill } from './ai-pill.js';
+
+const halo = createShockwaveHalo(area, { exclude: '.aip' });   // the pill animates, so keep it out of snapshots
+const pill = createAIPill(area, {
+  onTrigger: ({ opened }) => halo.trigger({ origin: pill.el, delay: opened ? 40 : 0 }),
+  onSubmit: text => sendToAI(text),
+});
+```
+
+### React / Vue / Svelte Example
+
+```jsx
+function useShockwaveHalo(ref, options) {
+  const halo = useRef(null);
+  useEffect(() => {
+    halo.current = createShockwaveHalo(ref.current, options);
+    return () => halo.current.destroy();
+  }, []);
+  return halo;
+}
+
+const area = useRef(null);
+const halo = useShockwaveHalo(area, { exclude: '.ai-input' });
+
+<main ref={area}>
+  …
+  <input className="ai-input" onFocus={() => halo.current.trigger()} />
+</main>
+```
+
+Same pattern for Vue and Svelte: create the instance on mount and call `destroy()` on unmount.
+
+### Running the Demo Locally
+
+```bash
+git clone https://github.com/amasun/shockwave-halo.git
+cd shockwave-halo
+python3 -m http.server 8788
+```
+
+Then open `http://localhost:8788/demo/` in your browser (browsers block ES modules over `file://`, so a local static server is required).
+
+---
+
+## Triggers & Built-in Palettes
+
+### 1. Origins (`origin`)
+
+| Value | Sweep Shape | Typical Usage |
+|---|---|---|
+| **DOM Element** (e.g. `input`) | Rises as a wide arc from the nearest edge when close to an edge; expands as a circle from its center otherwise | `origin: inputEl` (adapts automatically) |
+| **Viewport Point** `{ x, y }` | Expands radially from the clicked point | `halo.trigger({ origin: { x: e.clientX, y: e.clientY } })` |
+| **Preset Edge / Center** | `'bottom'` / `'top'` / `'left'` / `'right'` rises from an edge; `'center'` expands from the middle | `origin: 'bottom'` (default) |
+
+### 2. Four Built-in Palettes (`palette`)
+
+Each palette is tuned separately for **dark mode** (brighter, more saturated) and **light mode** (softer, airy), blending four rings from inside to outside:
+
+| Palette | Color Progression (inside → outside) | Best For |
+|---|---|---|
+| **`Aurora`** (default) | Blue → Violet → Pink → Peach | General AI assistants & modern web apps |
+| **`Halo`** | Orange → Amber → Gold → Warm White | Warm brand tones, low-sun lens feel |
+| **`Frost`** | Mint → Aqua → Lime → Ice White | Data dashboards & crisp developer tools |
+| **`Spark`** | Violet → Lavender → Gold → Warm Yellow | Creative tools, highlights & inspiration moments |
+
+You can also pass a custom palette: `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }`.
+
+---
+
+## Best Practices
+
+> **Use the halo like punctuation, not decoration.** Because it bends the page underneath, it carries strong visual weight—save it for moments worth noticing, and keep the rest of the interface quiet.
+
+| ✅ Use it for | ❌ Avoid using it for |
+|---|---|
+| **Waking up AI / Search**: clicking or focusing the input (`⌘K`) | **Passive micro-interactions**: hover states, dropdowns, tooltips |
+| **Milestones & Confirmations**: submitting, publishing, AI starting/finishing a reply | **Routine list actions**: checking items, pagination, filtering, row edits |
+| **Focus Mode Switches**: entering review, checkout, or full-screen mode | **Loading indicators**: the sweep lasts 1 second and isn't a spinner |
+
+---
+
+## API Reference
+
+### `createShockwaveHalo(area, options)`
+
+`area` is the container the halo sweeps across. The halo stays clipped inside it and matches its `border-radius` (make sure the container has `overflow: hidden`).
+
+<details>
+<summary><strong>Expand all configuration options</strong></summary>
+
+| Option | Default | Description |
+|---|---|---|
+| `origin` | `'bottom'` | Where the halo starts: an `Element`, `{x, y}` (viewport coordinates), or `'bottom' \| 'top' \| 'left' \| 'right' \| 'center'` |
+| `palette` | `'Aurora'` | `'Aurora' \| 'Halo' \| 'Frost' \| 'Spark'`, or custom `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }` |
+| `theme` | `'auto'` | `'auto'` follows `<html data-theme>` / `.dark` / system preference; also accepts `'light'`, `'dark'`, or a function returning either. Colors cross-fade smoothly when switching themes |
+| `layers` | all `true` | `{ bend, split, bevel, glints }`: page bend, color split, edge glass refraction, and line glints (color rings are always on) |
+| `bevelEdges` | `['left','right','bottom']` | Which edges act as glass bevels (exclude any edge sitting under a toolbar) |
+| `duration` | `1000` | Sweep duration in ms |
+| `ringWidth` | `110` | Width `w` of a single color ring (px) |
+| `bendPx` | `7` | Lens bend strength (px) |
+| `arcDepth` | ⅔ of edge length | How far beyond the edge the circle center sits when starting from an edge |
+| `retrigger` | `'restart'` | What happens if triggered while running: `'restart'` or `'ignore'` |
+| `reducedMotion` | `'auto'` | When reduced motion is enabled: turns off bend, split, bevel, and glints; the halo fades in and out in place at half strength (`600ms`) |
+| `exclude` | `null` | CSS selector for elements skipped in snapshots (e.g. animating elements or elements sitting above the halo) |
+| `svgLines` | `'[data-halo-line]'` | Selector for SVG strokes that glint. Only matching strokes light up by default, so icons stay untouched |
+| `snapshot` | `'auto'` | `'auto'` (`html-to-image`), `false` (color rings only, no page bend), or custom `async (el, opts) => canvas` |
+| `watch` | `true` | Automatically updates the snapshot during idle time when content inside `area` changes |
+| `maxDpr` | `2` | Maximum pixel ratio for rendering |
+| `zIndex` | `5` | Canvas `z-index`. Give elements that should sit on top of the halo (like an input) a higher `z-index` |
+| `onStart` / `onEnd` | — | Callbacks when the sweep starts / ends |
+
+</details>
+
+#### Returned Instance
+
+```js
+halo.trigger({ origin?, delay? })  // start the halo, returns Promise<boolean>
+halo.stop()                        // stop immediately
+halo.invalidate()                  // mark page dirty to re-snapshot on idle (watch covers most cases)
+halo.capture()                     // capture immediately, returns { ok, mode, ms }
+halo.setOptions({ palette: 'Frost', layers: { split: false } })
+halo.running                       // whether the animation is currently running
+halo.mode                          // 'snapshot' | 'overlay' | 'overlay (scrolled)' | 'overlay (no WebGL2)'
+halo.destroy()                     // clean up the canvas and listeners
+halo.debugHold(0.2)                // debug: freeze sweep at t=0.2; pass null to resume
+```
+
+### `createAIPill(container, options)`
+
+| Option | Default | Description |
+|---|---|---|
+| `placeholder` | `'Ask AI about this project'` | Input placeholder text |
+| `shortcut` | `'k'` | Keyboard shortcut (`⌘K` / `Ctrl K`); pass `null` to disable |
+| `model` / `mode` | `'Opus 5.5'` / `'Ask'` | Labels shown on the two picker buttons |
+| `bottom` | `48` | Distance in pixels from the bottom of `container` |
+| `onTrigger({ opened, reduced })` | — | Called when clicking or focusing the pill, pressing the shortcut, or clicking inside the opened input |
+| `onSubmit(text)` / `onOpen` / `onClose` | — | Submit and open/close callbacks |
+
+- **Returned instance**: `{ el, input, open(), close(), trigger(), reset(), isOpen, destroy() }`
+- **Styling**: Override colors with CSS variables: `--aip-bg`, `--aip-text`, `--aip-muted`, `--aip-faint`, `--aip-line`, `--aip-accent`, `--aip-send`, `--aip-send-fg`, `--aip-shadow`. Automatically switches to dark styling when an ancestor has `[data-theme="dark"]` or `.dark`.
+
+---
+
+## How It Works & Graceful Degradation
+
+- **Zero idle cost**: When not running, the canvas stays hidden with no `requestAnimationFrame` loop. It only captures a snapshot during browser idle time after content changes (`~60–200ms` on the main thread).
+- **Single-pass rendering & crisp line glints**: Reuses the cached snapshot and runs a 1-second fragment shader where pixels outside the halo band are transparent. A separate black-and-white border mask ensures a `1px` border glints as `1px` while text and icons stay untouched.
+- **Cross-browser compatibility & graceful fallback**:
+  - Uses `html-to-image` by default for broad browser support (and can plug into upcoming APIs like `HTML-in-Canvas` via a custom `snapshot` function).
+  - Automatically falls back to **color-ring overlay only** (without page bending) if WebGL2 is unavailable, cross-origin assets aren't inlined, or `area` / a descendant is scrolled—so nothing ever breaks (attach to a non-scrolling outer frame when possible).
+  - During the 1-second sweep, pixels inside the halo band come from the snapshot taken at trigger time; areas outside the band remain live.
 
 ---
 
 ## Let AI Wire It Up or Build It from Scratch
 
-You don't need to read the shader math or figure out all the options yourself. Expand the prompt you need below, **copy the entire block into Claude Code, Codex, Cursor, or any AI assistant**, and it will walk you through a few quick questions.
+You don't need to read the shader math or figure out all the options yourself. Copy one of the quick example prompts below to **Claude Code, Codex, or Cursor**, or expand the full prompt blocks right here.
+
+**Example prompts:**
+- *"My blog uses a dark theme. Add shockwave-halo with the `Frost` palette, triggered only when someone clicks or focuses the search bar."*
+- *"We have both a marketing site and a logged-in dashboard. Check where shockwave-halo fits—add it to key landing page CTAs and leave the dashboard tables untouched."*
+- *"I'm building a SwiftUI iOS app. Implement the same shockwave halo effect in Metal following the Build from Scratch spec below."*
 
 ### Integrate Prompt
 
@@ -211,145 +396,3 @@ These are suggestions from what worked in the demo and what each platform offers
 ```
 
 </details>
-
----
-
-## Quick Start
-
-### Minimal Usage (3 steps)
-
-```js
-import { createShockwaveHalo } from './shockwave-halo.js';
-
-const area = document.querySelector('#content');   // area the halo sweeps across (keep toolbars outside)
-const input = document.querySelector('#ai-input');
-
-const halo = createShockwaveHalo(area, { origin: input });
-input.addEventListener('focus', () => halo.trigger());
-```
-
-> [!NOTE]
-> To bend the page underneath, the halo needs `html-to-image` to take a snapshot: you can load it with a `<script>` tag (global `htmlToImage`), or do nothing and the component will automatically fetch `html-to-image@1.11.11` from jsDelivr when needed. If you use a bundler like Vite or Webpack, passing `snapshot` explicitly (as in the npm example above) is recommended.
-
-### With the AI Pill Input
-
-```js
-import { createShockwaveHalo } from './shockwave-halo.js';
-import { createAIPill } from './ai-pill.js';
-
-const halo = createShockwaveHalo(area, { exclude: '.aip' });   // the pill animates, so keep it out of snapshots
-const pill = createAIPill(area, {
-  onTrigger: ({ opened }) => halo.trigger({ origin: pill.el, delay: opened ? 40 : 0 }),
-  onSubmit: text => sendToAI(text),
-});
-```
-
-### React / Vue / Svelte Example
-
-```jsx
-function useShockwaveHalo(ref, options) {
-  const halo = useRef(null);
-  useEffect(() => {
-    halo.current = createShockwaveHalo(ref.current, options);
-    return () => halo.current.destroy();
-  }, []);
-  return halo;
-}
-
-const area = useRef(null);
-const halo = useShockwaveHalo(area, { exclude: '.ai-input' });
-
-<main ref={area}>
-  …
-  <input className="ai-input" onFocus={() => halo.current.trigger()} />
-</main>
-```
-
-Same pattern for Vue and Svelte: create the instance on mount and call `destroy()` on unmount.
-
-### Running the Demo Locally
-
-```bash
-git clone https://github.com/amasun/shockwave-halo.git
-cd shockwave-halo
-python3 -m http.server 8788
-```
-
-Then open `http://localhost:8788/demo/` in your browser (browsers block ES modules over `file://`, so a local static server is required).
-
----
-
-## API Reference
-
-### `createShockwaveHalo(area, options)`
-
-`area` is the container the halo sweeps across. The halo stays clipped inside it and matches its `border-radius` (make sure the container has `overflow: hidden`).
-
-<details>
-<summary><strong>Expand all configuration options</strong></summary>
-
-| Option | Default | Description |
-|---|---|---|
-| `origin` | `'bottom'` | Where the halo starts: an `Element` (rises as an arc from the nearest edge if close to one, otherwise expands as a circle from its center), `{x, y}` (viewport coordinates, e.g. click position), or `'bottom' \| 'top' \| 'left' \| 'right' \| 'center'` |
-| `palette` | `'Aurora'` | `'Aurora' \| 'Halo' \| 'Frost' \| 'Spark'`, or custom `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }` (4 rings from inside to outside) |
-| `theme` | `'auto'` | `'auto'` follows `<html data-theme>` / `.dark` / system preference; also accepts `'light'`, `'dark'`, or a function returning either. Colors cross-fade smoothly when switching themes |
-| `layers` | all `true` | `{ bend, split, bevel, glints }`: page bend, color split, edge glass refraction, and line glints (color rings are always on) |
-| `bevelEdges` | `['left','right','bottom']` | Which edges act as glass bevels (exclude any edge sitting under a toolbar) |
-| `duration` | `1000` | Sweep duration in ms |
-| `ringWidth` | `110` | Width `w` of a single color ring (px) |
-| `bendPx` | `7` | Lens bend strength (px) |
-| `arcDepth` | ⅔ of edge length | How far beyond the edge the circle center sits when starting from an edge |
-| `retrigger` | `'restart'` | What happens if triggered while running: `'restart'` or `'ignore'` |
-| `reducedMotion` | `'auto'` | When reduced motion is enabled: turns off bend, split, bevel, and glints; the halo fades in and out in place at half strength (`600ms`) |
-| `exclude` | `null` | CSS selector for elements skipped in snapshots (e.g. animating elements or elements sitting above the halo) |
-| `svgLines` | `'[data-halo-line]'` | Selector for SVG strokes that glint. Only matching strokes light up by default, so icons stay untouched |
-| `snapshot` | `'auto'` | `'auto'` (`html-to-image`), `false` (color rings only, no page bend), or custom `async (el, opts) => canvas` |
-| `watch` | `true` | Automatically updates the snapshot during idle time when content inside `area` changes |
-| `maxDpr` | `2` | Maximum pixel ratio for rendering |
-| `zIndex` | `5` | Canvas `z-index`. Give elements that should sit on top of the halo (like an input) a higher `z-index` |
-| `onStart` / `onEnd` | — | Callbacks when the sweep starts / ends |
-
-</details>
-
-#### Returned Instance
-
-```js
-halo.trigger({ origin?, delay? })  // start the halo, returns Promise<boolean>
-halo.stop()                        // stop immediately
-halo.invalidate()                  // mark page dirty to re-snapshot on idle (watch covers most cases)
-halo.capture()                     // capture immediately, returns { ok, mode, ms }
-halo.setOptions({ palette: 'Frost', layers: { split: false } })
-halo.running                       // whether the animation is currently running
-halo.mode                          // 'snapshot' | 'overlay' | 'overlay (scrolled)' | 'overlay (no WebGL2)'
-halo.destroy()                     // clean up the canvas and listeners
-halo.debugHold(0.2)                // debug: freeze sweep at t=0.2; pass null to resume
-```
-
-### `createAIPill(container, options)`
-
-| Option | Default | Description |
-|---|---|---|
-| `placeholder` | `'Ask AI about this project'` | Input placeholder text |
-| `shortcut` | `'k'` | Keyboard shortcut (`⌘K` / `Ctrl K`); pass `null` to disable |
-| `model` / `mode` | `'Opus 5.5'` / `'Ask'` | Labels shown on the two picker buttons |
-| `bottom` | `48` | Distance in pixels from the bottom of `container` |
-| `onTrigger({ opened, reduced })` | — | Called when clicking or focusing the pill, pressing the shortcut, or clicking inside the opened input |
-| `onSubmit(text)` / `onOpen` / `onClose` | — | Submit and open/close callbacks |
-
-- **Returned instance**: `{ el, input, open(), close(), trigger(), reset(), isOpen, destroy() }`
-- **Styling**: Override colors with CSS variables: `--aip-bg`, `--aip-text`, `--aip-muted`, `--aip-faint`, `--aip-line`, `--aip-accent`, `--aip-send`, `--aip-send-fg`, `--aip-shadow`. Automatically switches to dark styling when an ancestor has `[data-theme="dark"]` or `.dark`.
-
----
-
-## How It Works & Performance
-
-- **Zero idle cost**: When not running, the canvas stays hidden with no animation loop. It only takes a snapshot during browser idle time after content changes (`~60–200ms` on the main thread).
-- **1-second GPU pass on trigger**: Reuses the cached snapshot (or grabs a fresh one if needed) and runs a 1-second shader. Pixels outside the halo band are transparent, showing the live page underneath.
-- **Line glints without lighting up text**: Builds a separate black-and-white mask from each DOM border's position and width, so a `1px` border glints as `1px` while text and icons stay clean.
-
-## Limitations
-
-- **Requires WebGL2**: Without WebGL2, the halo falls back to color rings only (no page bend).
-- **DOM cloning caveats**: `html-to-image` clones the DOM, so cross-origin images and fonts need to be same-origin or inlined, and `backdrop-filter` may look slightly different.
-- **Scrolled containers fall back**: Cloning loses scroll offsets, so if `area` or a child element is scrolled, that trigger automatically falls back to color rings only. Attach the halo to a non-scrolling outer frame when possible.
-- **Snapshot frozen during the sweep**: During the 1-second sweep, pixels inside the halo band come from the snapshot taken at trigger time. Any updates during that second won't appear inside the band (outside the band is unaffected).
