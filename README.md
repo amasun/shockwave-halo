@@ -228,6 +228,7 @@ You don't need to memorize option names: tell your AI what you want in plain wor
 
 - **Zero cost at rest.** Nothing runs between halos: no animation loop, no background work.
 - **One snapshot per halo, taken just before it starts.** If the page hasn't changed since the last snapshot, the halo starts at once from the saved one. If it has, a fresh snapshot is taken first and the halo starts right after (about 0.1 s on a large screen). Changes that happen *during* the 1-second sweep appear after it ends.
+- **Form fields are covered.** Typed text, checkboxes, dropdowns and focus changes mark the page as changed, so a login form is never shown half-typed. If your app fills a field from code without any user event, call `halo.invalidate()` first.
 - **Content that updates constantly** (clocks, live counters, streaming text) makes the halo re-snapshot about every half second, each time pausing the page briefly. Keep such elements out with `exclude`, or tell your AI to "only snapshot when the halo triggers" (`watch: false`).
 - **Cost grows with screen size.** A large area at 2× pixel density uses about 35 MB of GPU memory.
 

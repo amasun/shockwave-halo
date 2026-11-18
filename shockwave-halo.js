@@ -290,6 +290,11 @@ export function createShockwaveHalo(area, options = {}) {
     mo = new MutationObserver(list => { if (list.some(m => !isExcluded(m.target.nodeType === 1 ? m.target : m.target.parentElement))) invalidate(500); });
     mo.observe(area, { subtree: true, childList: true, attributes: true, characterData: true });
   }
+  // Typed text, checkbox/radio/select state and focus are element properties or pseudo-states, not DOM changes, so the
+  // observer never sees them. Without this, a login form snapshotted at 3 typed characters still shows 3 when 6 are typed.
+  const FORM_EVENTS = ['input', 'change', 'focusin', 'focusout'];
+  const onFormEvent = e => { if (!isExcluded(e.target)) invalidate(250); };
+  if (o.watch) FORM_EVENTS.forEach(t => area.addEventListener(t, onFormEvent, true));
 
   /* ---------- geometry ---------- */
   function geometry(origin, w, h) {
@@ -336,7 +341,8 @@ export function createShockwaveHalo(area, options = {}) {
       loop();
       return true;
     };
-    if (snap.dirty && glOK) {
+    // watch:false means "don't track changes": take a fresh snapshot at every trigger instead of trusting an old one
+    if ((snap.dirty || !o.watch) && glOK) {
       const t = performance.now();
       return capture().then(() => { delay = Math.max(0, delay - (performance.now() - t)); return begin(); });
     }
@@ -413,6 +419,7 @@ export function createShockwaveHalo(area, options = {}) {
     destroy() {
       stop(); clearTimeout(dirtyTimer); ro.disconnect(); mo?.disconnect(); themeMO.disconnect();
       mqDark.removeEventListener('change', syncTheme); area.removeEventListener('scroll', onScroll, { capture: true });
+      FORM_EVENTS.forEach(t => area.removeEventListener(t, onFormEvent, true));
       gl?.getExtension('WEBGL_lose_context')?.loseContext(); canvas.remove();
     },
   };
