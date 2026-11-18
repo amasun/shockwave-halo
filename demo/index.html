@@ -30,6 +30,8 @@
   body, .area, .ws-sidebar, .kpi, .ws-card, .tb-btn, .seg, .seg button, .ws-tag, .ws-nav-item, .switch, .ws-hint {
     transition: background-color .4s ease, color .4s ease, border-color .4s ease, box-shadow .4s ease;
   }
+  /* whole-pixel line boxes: live text sits on the device pixel grid, so the page snapshot lines up with it */
+  .area * { line-height: round(1.45em, 1px); }
   .app { height: 100%; display: flex; flex-direction: column; }
   button { font: inherit; }
 
@@ -85,8 +87,8 @@
   .ws-app-icon { width: 18px; height: 18px; border-radius: 6px; background: linear-gradient(135deg, #4f6bff, #9b6bff); flex: none; }
   .ws-intro { padding: 4px 10px 6px; }
   .ws-intro h2 { margin: 0 0 4px; font-size: 14px; letter-spacing: -0.01em; }
-  .ws-intro p { margin: 0 0 6px; font-size: 12px; line-height: 1.5; color: var(--muted); }
-  .ws-intro ul { margin: 0; padding-left: 15px; font-size: 11.5px; line-height: 1.55; color: var(--muted); }
+  .ws-intro p { margin: 0 0 6px; font-size: 12px; line-height: round(1.5em, 1px); color: var(--muted); }
+  .ws-intro ul { margin: 0; padding-left: 15px; font-size: 11.5px; line-height: round(1.55em, 1px); color: var(--muted); }
   .ws-label { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); padding: 12px 10px 4px; }
   .ws-nav-item {
     display: flex; align-items: center; gap: 8px; width: 100%;
@@ -110,7 +112,10 @@
   .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform .2s ease; }
   .switch[aria-checked="true"] { background: var(--accent); }
   .switch[aria-checked="true"]::after { transform: translateX(12px); }
-  .ws-hint { margin-top: auto; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .reset-btn { margin: 4px 10px 2px; width: calc(100% - 20px); height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 12.5px; cursor: pointer; }
+  .reset-btn:hover { color: var(--text); border-color: var(--line-strong); background: var(--soft); }
+  .m-knobs .reset-btn { grid-column: 1 / -1; }
+  .ws-hint { margin-top: auto; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-size: 11.5px; color: var(--muted); line-height: round(1.45em, 1px); }
   .ws-hint b { color: var(--text); }
 
   .stage-inner {
@@ -152,15 +157,20 @@
 
   /* ---------- modals (install / config / guide) ---------- */
   .modal-backdrop {
-    position: fixed; inset: 0; z-index: 100; background: rgb(0 0 0 / 0.42); backdrop-filter: blur(8px);
-    display: grid; place-items: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s ease;
+    position: fixed; inset: 0; z-index: 100; background: rgb(0 0 0 / 0.42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    display: flex; padding: 20px; visibility: hidden; pointer-events: none; overflow-y: auto;
   }
-  .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+  /* no opacity transition on the blurred backdrop: it renders a washed-out, half-transparent frame. Fade the dialog itself instead. */
+  .modal-backdrop.open { visibility: visible; pointer-events: auto; }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
   .modal {
-    width: min(680px, 100%); max-height: 85vh; overflow-y: auto; border-radius: 16px; border: 1px solid var(--line-strong);
+    width: min(680px, 100%); max-height: min(85vh, 85dvh); overflow-y: auto; border-radius: 16px; border: 1px solid var(--line-strong);
     background: var(--surface); box-shadow: 0 24px 80px rgb(0 0 0 / 0.35); padding: 18px 20px 20px; display: none; flex-direction: column; gap: 14px;
   }
-  .modal.active { display: flex; }
+  .modal.active { display: flex; animation: modal-in .18s ease both; }
+  /* flex + margin:auto centres without a grid row that can collapse around a scroll container; flex:none keeps the dialog at its content height */
+  .modal { margin: auto; flex: none; }
+  @media (prefers-reduced-motion: reduce) { .modal.active { animation: none; } }
   .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .modal-head h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
   .modal-desc { margin: 0; font-size: 13px; color: var(--muted); }
@@ -170,7 +180,7 @@
   .codebox { border: 1px solid var(--line); border-radius: 11px; background: var(--code-bg); overflow: hidden; }
   .code-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 13px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
   .copy-btn { border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 11.5px; padding: 2px 9px; border-radius: 6px; cursor: pointer; }
-  pre { margin: 0; padding: 13px 14px; overflow-x: auto; max-height: 260px; overflow-y: auto; font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  pre { margin: 0; padding: 13px 14px; overflow-x: auto; max-height: 260px; overflow-y: auto; font: 12.5px/20px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
   .m-knobs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 10px; border: 1px solid var(--line); border-radius: 11px; padding: 6px 4px; background: var(--card); }
   .m-knobs .toggle-row { grid-column: 1 / -1; }
   .m-links { display: flex; gap: 8px; }
@@ -315,6 +325,7 @@
   <div class="knob"><div class="knob-top"><span>弯折强度</span><output data-out="bendPx"></output></div><input type="range" data-param="bendPx" min="0" max="16" value="7" aria-label="弯折强度 bendPx"></div>
   <div class="knob"><div class="knob-top"><span>时长</span><output data-out="duration"></output></div><input type="range" data-param="duration" min="500" max="1800" step="50" value="1000" aria-label="时长 duration"></div>
   <label class="toggle-row"><span>减弱动效</span><button class="switch" role="switch" aria-checked="false" data-param="reduced" aria-label="减弱动效"></button></label>
+  <button class="reset-btn" type="button" data-action="reset-params" title="把光环宽度、弯折强度、时长、减弱动效、配色和起点恢复为默认值">↺ 重置参数</button>
 </template>
 
 <div class="modal-backdrop" id="modal-backdrop">
@@ -470,6 +481,15 @@ document.addEventListener('change', e => {
 document.addEventListener('click', e => {
   const s = e.target.closest('[data-param="reduced"]'); if (!s) return;
   e.preventDefault(); state.reduced = !state.reduced; syncKnobs(); runPreview();
+});
+
+/* ---------- one-click reset ---------- */
+const DEFAULTS = { palette: 'Aurora', origin: 'element', dir: 'bottom', ringWidth: 110, bendPx: 7, duration: 1000 };
+document.addEventListener('click', e => {
+  if (!e.target.closest('[data-action="reset-params"]')) return;
+  Object.assign(state, DEFAULTS, { reduced: matchMedia('(prefers-reduced-motion: reduce)').matches });
+  halo.setOptions({ palette: state.palette });
+  renderPalettes(); syncOrigin(); syncKnobs(); runPreview();
 });
 
 /* ---------- code shown in the dialogs ---------- */
