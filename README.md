@@ -23,6 +23,12 @@
 
 ---
 
+<p align="center">
+  <img src="docs/preview.gif" width="800" alt="Shockwave Halo sweeping across a dashboard in seven palettes, light and dark" />
+  <br />
+  <sub>Seven built-in palettes, alternating light and dark: the halo sweeps up from the AI input and bends the page as it passes.</sub>
+</p>
+
 > [!TIP]
 > **Interactive Demo**: Open the [Shockwave Halo Demo](https://amasun.github.io/shockwave-halo/) and click the input pill at the bottom; use the top toolbar to switch origins, color palettes, light/dark themes, and reduced motion.
 

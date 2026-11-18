@@ -23,6 +23,12 @@
 
 ---
 
+<p align="center">
+  <img src="docs/preview.gif" width="800" alt="Shockwave Halo 在仪表盘上扫过：七套配色，亮暗主题交替" />
+  <br />
+  <sub>七套内置配色，亮暗主题交替：光环从 AI 输入框扫起，经过时让页面轻轻弯折。</sub>
+</p>
+
 > [!TIP]
 > **在线体验**：打开 [Shockwave Halo Demo](https://amasun.github.io/shockwave-halo/)，点击底部输入框即可看到效果；顶部工具栏支持实时切换起点、七套配色、明暗主题与减弱动效。
 
