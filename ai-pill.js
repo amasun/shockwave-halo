@@ -55,6 +55,7 @@ export function createAIPill(container, options = {}) {
   const o = {
     placeholder: 'Ask AI about this project', shortcut: 'k', model: 'Opus 5.5', mode: 'Ask',
     bottom: 48, zIndex: 10, reducedMotion: 'auto', alwaysOpen: false,
+    ignoreOutside: null,   // selector: clicks on matching elements outside the pill don't close it (e.g. '.toolbar')
     onTrigger: null, onSubmit: null, onOpen: null, onClose: null, ...options,
   };
   if (!document.getElementById('aip-css')) {
@@ -141,9 +142,10 @@ export function createAIPill(container, options = {}) {
     focusables.forEach(b => b.tabIndex = -1); pill.tabIndex = 0;
     kick(); o.onClose?.();
   }
+  // delay: the halo leaves 40ms after the opening starts (0 when already open or reduced motion)
   function trigger() {
-    if (o.alwaysOpen) { o.onTrigger?.({ opened: false, reduced: reduced() }); return; }
-    const opened = open(); o.onTrigger?.({ opened, reduced: reduced() });
+    if (o.alwaysOpen) { o.onTrigger?.({ opened: false, reduced: reduced(), delay: 0 }); return; }
+    const opened = open(); o.onTrigger?.({ opened, reduced: reduced(), delay: opened && !reduced() ? 40 : 0 });
   }
 
   if (o.alwaysOpen) {
@@ -152,12 +154,16 @@ export function createAIPill(container, options = {}) {
   }
 
   const onPillFocus = e => { if (e.isTrusted && st === 'closed') trigger(); };
-  const onInputDown = () => { if (!o.alwaysOpen && st === 'open') o.onTrigger?.({ opened: false, reduced: reduced() }); };
-  const onDocDown = e => { if (!o.alwaysOpen && !el.contains(e.target)) close(); };
+  const onInputDown = () => { if (!o.alwaysOpen && st === 'open') o.onTrigger?.({ opened: false, reduced: reduced(), delay: 0 }); };
+  const onDocDown = e => {
+    if (o.alwaysOpen || el.contains(e.target)) return;
+    if (o.ignoreOutside && e.target.closest?.(o.ignoreOutside)) return;   // e.g. a toolbar that should not close the card
+    close();
+  };
   const onKey = e => {
     if (o.shortcut && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === o.shortcut) {
       e.preventDefault(); if (st === 'closed' || st === 'closing') trigger(); else input.focus();
-    } else if (e.key === 'Escape' && !o.alwaysOpen && el.contains(document.activeElement)) { close(); pill.focus({ preventScroll: true }); }
+    } else if (e.key === 'Escape' && !o.alwaysOpen && st !== 'closed') { close(); pill.focus({ preventScroll: true }); }
   };
   const onSubmit = e => { e.preventDefault(); const v = input.value.trim(); if (v || o.alwaysOpen) { o.onSubmit?.(v); input.value = ''; } };
   pill.addEventListener('click', trigger);

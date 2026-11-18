@@ -103,7 +103,7 @@ import { createAIPill } from './ai-pill.js';
 
 const halo = createShockwaveHalo(area, { exclude: '.aip' });   // 输入框自己会动，拍快照时排除它
 const pill = createAIPill(area, {
-  onTrigger: ({ opened }) => halo.trigger({ origin: pill.el, delay: opened ? 40 : 0 }),
+  onTrigger: ({ delay }) => halo.trigger({ origin: pill.el, delay }),
   onSubmit: text => sendToAI(text),
 });
 ```
@@ -237,7 +237,8 @@ halo.debugHold(0.2)                // 调试用：把动画定格在 t=0.2；传
 | `shortcut` | `'k'` | 快捷键（`⌘K` / `Ctrl K`），传 `null` 关闭 |
 | `model` / `mode` | `'Opus 5.5'` / `'Ask'` | 两个下拉按钮上显示的文字 |
 | `bottom` | `48` | 距离容器底部的像素高度 |
-| `onTrigger({ opened, reduced })` | — | 点击或聚焦胶囊、按快捷键、在已打开输入框内点击时触发 |
+| `ignoreOutside` | `null` | 选择器：点击容器外匹配的元素（如工具栏）时不收起输入框 |
+| `onTrigger({ opened, reduced, delay })` | — | 点击或聚焦胶囊、按快捷键、在已打开输入框内点击时触发 |
 | `onSubmit(text)` / `onOpen` / `onClose` | — | 提交文本与展开/收起回调 |
 
 - **返回实例**：`{ el, input, open(), close(), trigger(), reset(), isOpen, destroy() }`

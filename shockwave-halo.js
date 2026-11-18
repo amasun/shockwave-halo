@@ -336,7 +336,7 @@ export function createShockwaveHalo(area, options = {}) {
       loop();
       return true;
     };
-    if (snap.dirty && glOK && !running) {
+    if (snap.dirty && glOK) {
       const t = performance.now();
       return capture().then(() => { delay = Math.max(0, delay - (performance.now() - t)); return begin(); });
     }

@@ -103,7 +103,7 @@ import { createAIPill } from './ai-pill.js';
 
 const halo = createShockwaveHalo(area, { exclude: '.aip' });   // the pill animates, so keep it out of snapshots
 const pill = createAIPill(area, {
-  onTrigger: ({ opened }) => halo.trigger({ origin: pill.el, delay: opened ? 40 : 0 }),
+  onTrigger: ({ delay }) => halo.trigger({ origin: pill.el, delay }),
   onSubmit: text => sendToAI(text),
 });
 ```
@@ -237,7 +237,8 @@ halo.debugHold(0.2)                // debug: freeze sweep at t=0.2; pass null to
 | `shortcut` | `'k'` | Keyboard shortcut (`⌘K` / `Ctrl K`); pass `null` to disable |
 | `model` / `mode` | `'Opus 5.5'` / `'Ask'` | Labels shown on the two picker buttons |
 | `bottom` | `48` | Distance in pixels from the bottom of `container` |
-| `onTrigger({ opened, reduced })` | — | Called when clicking or focusing the pill, pressing the shortcut, or clicking inside the opened input |
+| `ignoreOutside` | `null` | Selector: clicks on matching elements outside the pill (e.g. a toolbar) do not close it |
+| `onTrigger({ opened, reduced, delay })` | — | Called when clicking or focusing the pill, pressing the shortcut, or clicking inside the opened input |
 | `onSubmit(text)` / `onOpen` / `onClose` | — | Submit and open/close callbacks |
 
 - **Returned instance**: `{ el, input, open(), close(), trigger(), reset(), isOpen, destroy() }`
