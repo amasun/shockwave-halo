@@ -834,25 +834,3 @@ window.halo = halo; window.pill = pill;
 </script>
 </body>
 </html>
-istener('resize', layoutGraph);
-
-/* Active sidebar highlight on scroll */
-const navLinks = [...document.querySelectorAll('#sidenav-links a')];
-const obs = new IntersectionObserver(entries => {
-  for (const en of entries) {
-    if (en.isIntersecting) {
-      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id));
-    }
-  }
-}, { rootMargin: '-20% 0px -65% 0px' });
-navLinks.forEach(a => { const sec = $(a.getAttribute('href')); if (sec) obs.observe(sec); });
-
-function updateMode() {
-  $('#mode').textContent = halo.mode + (halo.snapshotMs ? ` · ${halo.snapshotMs}ms` : '');
-}
-setInterval(updateMode, 800);
-updateMode();
-window.halo = halo; window.pill = pill;
-</script>
-</body>
-</html>
