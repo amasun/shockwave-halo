@@ -1,5 +1,5 @@
-<!doctype html>
-<html lang="zh-CN" data-theme="light">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,499 +7,457 @@
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
 <style>
   :root {
-    --bg: #f5f6f8; --surface: #ffffff; --card: #ffffff; --soft: #f1f3f6; --code-bg: #f8fafc;
-    --line: rgb(15 23 42 / 0.08); --line-strong: rgb(15 23 42 / 0.15);
+    --bg: #f4f5f8; --surface: #ffffff; --card: #fafbfc; --soft: #eef0f5;
+    --line: rgb(15 23 42 / 0.08); --line-strong: rgb(15 23 42 / 0.14);
     --text: #0f172a; --muted: #64748b; --faint: #94a3b8;
-    --accent: #4f6bff; --ok: #12a26b; --warn: #d98a12;
-    --shadow: 0 0 0 1px rgb(15 23 42 / 0.06), 0 12px 36px -14px rgb(15 23 42 / 0.12);
-    --float-shadow: 0 8px 30px -8px rgb(15 23 42 / 0.10);
-    color-scheme: light;
+    --accent: #4f6bff; --ok: #12a26b; --code-bg: #f8f9fc;
+    --float-shadow: 0 20px 56px -18px rgb(15 23 42 / 0.14), 0 0 0 1px rgb(15 23 42 / 0.04);
   }
   [data-theme="dark"] {
-    --bg: #09090b; --surface: #121215; --card: #17171b; --soft: #1f1f25; --code-bg: #111114;
-    --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14);
-    --text: #ececf1; --muted: #8d8d98; --faint: #5f5f69;
-    --accent: #8ea2ff; --ok: #3ccf91; --warn: #f0b048;
-    --shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 16px 44px -12px rgb(0 0 0 / 0.7);
-    --float-shadow: 0 10px 34px -8px rgb(0 0 0 / 0.6);
+    --bg: #0c0d10; --surface: #14151a; --card: #191b22; --soft: #22242d;
+    --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.15);
+    --text: #ececf2; --muted: #8f93a3; --faint: #646878;
+    --accent: #8ea2ff; --ok: #34d399; --code-bg: #101116;
+    --float-shadow: 0 26px 70px -18px rgb(0 0 0 / 0.72), 0 0 0 1px rgb(255 255 255 / 0.06);
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
-    font: 14.5px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", system-ui, sans-serif;
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     transition: background-color .35s ease, color .35s ease;
   }
 
-  /* 2-Column Shell: Floating Sidebar + Main Column (with Top Sticky Wide Dashboard) */
-  .shell {
-    max-width: 1320px; margin: 0 auto; padding: 24px 24px 96px;
-    display: grid; grid-template-columns: 184px minmax(0, 1fr); gap: 32px; align-items: start;
+  .app-shell {
+    max-width: 1260px; margin: 0 auto; padding: 16px 20px 24px;
+    min-height: 100vh; display: flex; flex-direction: column; gap: 12px;
   }
 
-  /* Left Floating Sticky Sidebar */
-  .sidenav {
-    position: sticky; top: 24px;
-    padding: 4px 0;
-    display: flex; flex-direction: column; gap: 12px;
+  /* Top Explicit Interactive Control Bar */
+  .topbar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px;
+    padding: 8px 12px; border-radius: 13px; border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(12px);
+    transition: background-color .35s ease, border-color .35s ease;
   }
-  .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-weight: 650; font-size: 13.5px; letter-spacing: -0.01em; }
+  .top-brand { display: flex; align-items: center; gap: 9px; }
   .dot-logo { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #4f6bff, #ff6eb4); flex: none; }
-  .brand-meta { font-size: 11px; color: var(--faint); margin-top: -6px; }
-  .nav-list { display: flex; flex-direction: column; gap: 2px; }
-  .nav-list a {
-    display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-radius: 8px;
-    color: var(--muted); text-decoration: none; font-size: 12.5px; transition: background-color .15s, color .15s;
+  .top-brand b { font-size: 13.5px; letter-spacing: -0.01em; }
+  .top-status { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; padding-left: 6px; border-left: 1px solid var(--line); }
+
+  .top-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .pal-pills { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); }
+  .pal-pill {
+    border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 11.5px;
+    height: 26px; padding: 0 8px; border-radius: 7px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px; transition: background-color .15s, color .15s;
   }
-  .nav-list a:hover { color: var(--text); background: var(--soft); }
-  .nav-list a.active { color: var(--text); background: var(--soft); font-weight: 550; }
-  .nav-list a::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.35; }
-  .nav-list a.active::before { background: var(--accent); opacity: 1; }
-  .nav-sep { height: 1px; background: var(--line); margin: 2px 0; }
-  .side-actions { display: flex; flex-direction: column; gap: 6px; }
-  .side-status { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; padding: 2px 4px; }
+  .pal-pill:hover { color: var(--text); }
+  .pal-pill[aria-pressed="true"] { background: var(--soft); color: var(--text); font-weight: 600; }
+  .pal-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 
-  /* Right Column */
-  .main { display: flex; flex-direction: column; gap: 40px; min-width: 0; }
-  section { scroll-margin-top: 390px; }
-  h1 { font-size: 32px; letter-spacing: -0.03em; margin: 0 0 10px; line-height: 1.18; }
-  h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 8px; }
-  p.lead { margin: 0 0 16px; color: var(--muted); font-size: 14.5px; }
+  .seg { display: inline-flex; align-items: center; padding: 2px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); }
+  .seg button {
+    border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 11.5px;
+    height: 26px; padding: 0 9px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .seg button:hover { color: var(--text); }
+  .seg button[aria-pressed="true"] { background: var(--soft); color: var(--text); font-weight: 600; }
+  .dir-select {
+    border: 0; background: transparent; color: var(--text); font: inherit; font-size: 11.5px; font-weight: 550;
+    height: 26px; padding: 0 4px 0 2px; cursor: pointer; outline: none;
+  }
 
-  /* Buttons & Segmented Controls */
+  .top-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
   .btn {
-    height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line);
-    background: var(--surface); color: var(--text); font: inherit; font-size: 12.5px; font-weight: 500;
-    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 30px; padding: 0 11px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--text); font: inherit; font-size: 12px; font-weight: 500;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
     transition: border-color .2s, background-color .2s;
   }
   .btn:hover { border-color: var(--line-strong); }
   .btn.primary { background: var(--text); color: var(--surface); border-color: transparent; }
   .btn.primary:hover { opacity: 0.9; }
-  .seg { display: inline-flex; flex-wrap: wrap; padding: 2px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); }
-  .seg button {
-    border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12.5px;
-    height: 27px; padding: 0 11px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
-  }
-  .seg button[aria-pressed="true"] { background: var(--soft); color: var(--text); font-weight: 550; }
 
-  /* Top Persistent Sticky Dashboard & Expandable Floating Modal */
-  .stage-backdrop {
-    position: fixed; inset: 0; z-index: 90;
-    background: rgb(0 0 0 / 0.48); backdrop-filter: blur(8px);
-    opacity: 0; pointer-events: none; transition: opacity .22s ease;
-  }
-  .stage-backdrop.show { opacity: 1; pointer-events: auto; }
-  .float-stage {
-    position: sticky; top: 10px; z-index: 40;
-    display: flex; flex-direction: column; gap: 8px;
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: blur(12px);
-    padding: 4px 0 8px; margin: -4px 0 -12px;
-  }
-  .float-stage.is-expanded {
-    position: fixed; inset: 20px; z-index: 100; margin: 0;
-    padding: 12px 14px 14px; border-radius: 18px;
-    background: var(--bg); border: 1px solid var(--line-strong);
-    box-shadow: 0 24px 80px rgb(0 0 0 / 0.35);
-  }
-  .stage-bar {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 0 4px; font-size: 12px; color: var(--muted);
-  }
-  .stage-bar-actions { display: flex; align-items: center; gap: 6px; flex: none; }
+  /* Main Realistic Product Dashboard Stage */
   .area {
-    position: relative; height: clamp(410px, 50vh, 500px); border-radius: 16px; overflow: hidden;
+    position: relative; flex: 1; min-height: 540px; max-height: 760px;
+    border-radius: 16px; overflow: hidden;
     background: var(--surface); border: 1px solid var(--line); box-shadow: var(--float-shadow);
     transition: background-color .35s ease, border-color .35s ease, box-shadow .35s ease;
   }
-  .float-stage.is-expanded .area { flex: 1; height: auto; min-height: 0; max-height: none; }
   .area.point-cursor { cursor: crosshair; }
   .area .aip { max-width: calc(100% - 28px); }
   .area .aip-card { width: 100%; }
-  .float-stage:not(.is-expanded) .area .aip { bottom: 14px !important; height: 84px !important; }
-  .float-stage:not(.is-expanded) .area .aip-card { height: 84px; }
-  .float-stage:not(.is-expanded) .area .aip-line { margin: 10px 14px 6px; }
-  .float-stage:not(.is-expanded) .area .aip-tools { height: 44px; }
-  .stage-inner {
-    position: absolute; inset: 0; padding: 16px 20px 112px;
-    display: grid; grid-template-columns: 1.45fr 1fr; grid-template-rows: auto auto 1fr;
-    gap: 12px 14px;
-  }
-  .float-stage.is-expanded .stage-inner { padding: 22px 26px 136px; gap: 14px 18px; }
-  .ws-head { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .ws-crumb { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
-  .ws-crumb b { color: var(--text); font-weight: 600; }
-  .ws-app-icon { width: 16px; height: 16px; border-radius: 5px; background: linear-gradient(135deg, #4f6bff, #9b6bff); display: inline-block; flex: none; }
-  .ws-live { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ok); padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--ok) 12%, transparent); }
-  .ws-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
-  .ws-tags { display: flex; gap: 5px; }
-  .ws-tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--card); }
 
-  .kpi-row { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .kpi {
-    border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; background: var(--card);
+  .ws-layout {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: 196px minmax(0, 1fr);
+  }
+  .ws-sidebar {
+    border-right: 1px solid var(--line); background: var(--card);
+    padding: 16px 12px; display: flex; flex-direction: column; gap: 14px;
     transition: background-color .35s ease, border-color .35s ease;
   }
-  .kpi-k { font-size: 11px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .ws-org { display: flex; align-items: center; gap: 8px; padding: 4px 6px; font-size: 13px; font-weight: 650; }
+  .ws-app-icon { width: 18px; height: 18px; border-radius: 6px; background: linear-gradient(135deg, #4f6bff, #9b6bff); flex: none; }
+  .ws-nav { display: flex; flex-direction: column; gap: 2px; }
+  .ws-nav-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 10px; border-radius: 8px; font-size: 12.5px; color: var(--muted);
+  }
+  .ws-nav-item.active { background: var(--soft); color: var(--text); font-weight: 550; }
+  .ws-nav-badge { font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+  .ws-side-foot {
+    margin-top: auto; padding: 10px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); font-size: 11.5px; color: var(--muted);
+  }
+  .ws-side-foot b { display: block; color: var(--text); font-size: 12px; margin-bottom: 2px; }
+
+  .stage-inner {
+    padding: 18px 22px 140px; min-width: 0;
+    display: grid; grid-template-columns: 1.45fr 1fr; grid-template-rows: auto auto 1fr;
+    gap: 14px;
+  }
+  .ws-head { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ws-crumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .ws-crumb b { color: var(--text); font-weight: 600; }
+  .ws-live { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ok); padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--ok) 12%, transparent); }
+  .ws-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .ws-tags { display: flex; gap: 6px; }
+  .ws-tag { font-size: 11px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--card); }
+
+  .kpi-row { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .kpi {
+    border: 1px solid var(--line); border-radius: 11px; padding: 12px 14px; background: var(--card);
+    transition: background-color .35s ease, border-color .35s ease;
+  }
+  .kpi-k { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; gap: 6px; }
   .kpi-delta { font-size: 10.5px; font-weight: 600; color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); padding: 1px 6px; border-radius: 999px; }
-  .kpi-v { font-size: 19px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 3px; }
+  .kpi-v { font-size: 21px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 4px; }
 
   .ws-card {
-    border: 1px solid var(--line); border-radius: 11px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; background: var(--card);
     display: flex; flex-direction: column; min-height: 0; overflow: hidden;
     transition: background-color .35s ease, border-color .35s ease;
   }
   .ws-card.grow { grid-column: 1; grid-row: 3; }
   .ws-card.activity-card { grid-column: 2; grid-row: 3; }
   .ws-card-head {
-    padding: 9px 13px; border-bottom: 1px solid var(--line);
+    padding: 10px 14px; border-bottom: 1px solid var(--line);
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 12px; font-weight: 600;
+    font-size: 12.5px; font-weight: 600;
   }
   .ws-card-head span { font-weight: 400; color: var(--faint); font-size: 11px; }
 
-  .chart-wrap { position: relative; flex: 1; min-height: 90px; padding: 10px 12px 6px; display: flex; flex-direction: column; }
+  .chart-wrap { position: relative; flex: 1; min-height: 110px; padding: 12px 14px 8px; display: flex; flex-direction: column; }
   .chart-svg { width: 100%; flex: 1; min-height: 0; overflow: visible; }
   .chart-grid { stroke: var(--line); stroke-width: 1; }
   .chart-line { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .chart-line-sub { fill: none; stroke: var(--line-strong); stroke-width: 1.4; stroke-dasharray: 3 3; }
-  .chart-axis { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); padding-top: 4px; font-variant-numeric: tabular-nums; }
+  .chart-axis { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); padding-top: 6px; font-variant-numeric: tabular-nums; }
 
-  .insight-list { padding: 4px 13px; display: flex; flex-direction: column; justify-content: space-around; flex: 1; }
-  .insight-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; font-size: 11.5px; border-bottom: 1px solid var(--line); }
+  .insight-list { padding: 6px 14px; display: flex; flex-direction: column; justify-content: space-around; flex: 1; }
+  .insight-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; font-size: 12px; border-bottom: 1px solid var(--line); }
   .insight-row:last-child { border-bottom: 0; }
   .insight-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .insight-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
   .insight-dot.ok { background: var(--ok); }
   .insight-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
-  .insight-time { font-size: 10.5px; color: var(--faint); flex: none; font-variant-numeric: tabular-nums; }
+  .insight-time { font-size: 11px; color: var(--faint); flex: none; font-variant-numeric: tabular-nums; }
 
-  /* Prominent 4-Palette Showcase */
-  .pal-showcase { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-  .pal-card {
-    text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line);
-    background: var(--surface); cursor: pointer; font: inherit; color: var(--text);
-    transition: border-color .2s, box-shadow .2s, transform .15s, background-color .35s;
+  /* Reusable Modal System */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgb(0 0 0 / 0.45); backdrop-filter: blur(8px);
+    display: grid; place-items: center; padding: 20px;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease;
   }
-  .pal-card:hover { border-color: var(--line-strong); transform: translateY(-1px); }
-  .pal-card[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .pal-bar { height: 9px; border-radius: 999px; margin-bottom: 9px; }
-  .pal-title { font-weight: 650; font-size: 13.5px; display: flex; align-items: center; justify-content: space-between; }
-  .pal-tag { font-size: 10.5px; font-weight: 500; color: var(--accent); opacity: 0; }
-  .pal-card[aria-pressed="true"] .pal-tag { opacity: 1; }
-  .pal-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    width: min(680px, 100%); max-height: 85vh; overflow-y: auto;
+    border-radius: 16px; border: 1px solid var(--line-strong);
+    background: var(--surface); box-shadow: 0 24px 80px rgb(0 0 0 / 0.35);
+    padding: 18px 20px 20px; display: none; flex-direction: column; gap: 14px;
+  }
+  .modal.active { display: flex; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .modal-head h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
+  .modal-desc { margin: 0; font-size: 13px; color: var(--muted); }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--muted); cursor: pointer; font-size: 15px; display: grid; place-items: center;
+  }
+  .modal-close:hover { color: var(--text); border-color: var(--line-strong); }
 
-  /* Trigger Type & Direction Controls */
-  .trigger-controls { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
-  .dir-panel {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-    padding: 10px 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--surface);
-    width: 100%;
-  }
-  .dir-label { font-size: 12px; color: var(--muted); margin-right: 4px; }
-  .dir-btn {
-    height: 28px; padding: 0 11px; border-radius: 7px; border: 1px solid var(--line);
-    background: var(--card); color: var(--muted); font: inherit; font-size: 12px; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 5px;
-    transition: border-color .15s, background-color .15s, color .15s;
-  }
-  .dir-btn:hover { color: var(--text); border-color: var(--line-strong); }
-  .dir-btn[aria-pressed="true"] {
-    background: var(--soft); color: var(--text); border-color: var(--accent); font-weight: 550;
-  }
-  .trigger-tip { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
-
-  /* Code Blocks */
-  .codebox { border: 1px solid var(--line); border-radius: 11px; background: var(--code-bg); overflow: hidden; margin-top: 12px; }
+  .codebox { border: 1px solid var(--line); border-radius: 11px; background: var(--code-bg); overflow: hidden; }
   .code-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 14px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted);
+    padding: 8px 13px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted);
   }
   .copy-btn {
     border: 1px solid var(--line); background: var(--surface); color: var(--text);
     font: inherit; font-size: 11.5px; padding: 2px 9px; border-radius: 6px; cursor: pointer;
   }
   pre {
-    margin: 0; padding: 13px 15px; overflow-x: auto;
+    margin: 0; padding: 13px 14px; overflow-x: auto; max-height: 260px; overflow-y: auto;
     font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 
-  /* Sliders & Best Practices */
-  .sliders { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
-  .s-card { border: 1px solid var(--line); border-radius: 11px; padding: 11px 13px; background: var(--surface); }
-  .s-top { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 8px; }
+  .sliders { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .s-card { border: 1px solid var(--line); border-radius: 11px; padding: 10px 12px; background: var(--card); }
+  .s-top { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
   .s-top code { font-family: ui-monospace, monospace; font-weight: 600; }
   .s-top span { color: var(--muted); font-variant-numeric: tabular-nums; }
   .s-card input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
 
-  .bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .bp-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--surface); }
-  .bp-card h4 { margin: 0 0 8px; font-size: 13px; }
+  .bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .bp-card { border: 1px solid var(--line); border-radius: 11px; padding: 12px 14px; background: var(--card); }
+  .bp-card h4 { margin: 0 0 6px; font-size: 13px; }
   .bp-card ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
 
-  @media (max-width: 1020px) {
-    .float-stage:not(.is-expanded) .stage-inner { grid-template-columns: 1fr; }
-    .float-stage:not(.is-expanded) .ws-card:not(.grow) { display: none; }
+  @media (max-width: 960px) {
+    .ws-layout { grid-template-columns: 1fr; }
+    .ws-sidebar { display: none; }
+    .stage-inner { grid-template-columns: 1fr; padding: 14px 16px 126px; gap: 10px; }
+    .ws-card.activity-card { display: none; }
   }
-  @media (max-width: 820px) {
-    .shell { grid-template-columns: 1fr; padding: 14px 14px 80px; gap: 16px; }
-    .sidenav { position: static; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 0 2px; }
-    .nav-list, .nav-sep, .brand-meta { display: none; }
-    .side-actions { flex-direction: row; }
-    .float-stage { top: 6px; }
-    .float-stage.is-expanded { inset: 10px; padding: 10px; }
-    .area { height: 44vh; min-height: 270px; max-height: 380px; }
-    .float-stage:not(.is-expanded) .stage-inner { padding: 12px 14px 92px; gap: 8px; }
-    .kpi { padding: 7px 9px; }
-    .kpi-v { font-size: 14px; }
-    .float-stage:not(.is-expanded) .area .aip { bottom: 8px !important; height: 72px !important; max-width: calc(100% - 20px); }
-    .float-stage:not(.is-expanded) .area .aip-card { height: 72px; }
-    .float-stage:not(.is-expanded) .area .aip-line { margin: 7px 12px 4px; }
-    .float-stage:not(.is-expanded) .area .aip-tools { height: 37px; }
-    .pal-showcase { grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); gap: 6px; }
-    .pal-card { padding: 8px 9px; }
-    .pal-desc { display: none; }
-  }
-  @media (max-width: 600px) {
+  @media (max-width: 640px) {
+    .app-shell { padding: 10px 10px 16px; }
+    .area { min-height: 460px; }
+    .kpi { padding: 9px 10px; }
+    .kpi-v { font-size: 16px; }
     .sliders, .bp-grid { grid-template-columns: 1fr; }
-    .area { height: 45vh; min-height: 270px; max-height: 360px; }
+    .top-status { display: none; }
   }
 </style>
 </head>
 <body>
 
-<div class="shell">
-  <!-- Left: Floating Sticky Sidebar -->
-  <aside class="sidenav">
-    <a class="brand" href="#preview"><span class="dot-logo"></span>shockwave-halo</a>
-    <div class="brand-meta">v1.0.0 · MIT · Zero-Dep</div>
-    <nav class="nav-list" id="sidenav-links">
-      <a href="#preview" class="active">概览与配色</a>
-      <a href="#install">安装与接入</a>
-      <a href="#triggers">触发方式与方向</a>
-      <a href="#params">核心参数</a>
-      <a href="#practices">最佳实践</a>
-    </nav>
-    <div class="nav-sep"></div>
-    <div class="side-actions">
-      <button class="btn primary" id="side-trigger">▶ 触发光环</button>
-      <button class="btn" id="theme-btn">◐ 亮 / 暗切换</button>
-      <button class="btn" id="motion-btn" aria-pressed="false">Motion: full</button>
+<div class="app-shell">
+  <!-- Explicit Interactive Control Bar -->
+  <header class="topbar">
+    <div class="top-brand">
+      <span class="dot-logo"></span>
+      <b>shockwave-halo</b>
+      <span class="top-status" id="mode">…</span>
     </div>
-    <div class="side-status" id="mode">…</div>
-  </aside>
 
-  <!-- Right: Main Column with Top Sticky Wide Dashboard -->
-  <div class="stage-backdrop" id="stage-backdrop"></div>
-  <main class="main">
+    <div class="top-controls">
+      <!-- 7 Palettes -->
+      <div class="pal-pills" id="palettes" role="group" aria-label="Color palettes"></div>
 
-    <section class="float-stage" id="float-stage">
-      <div class="stage-bar">
-        <span id="stage-bar-hint">持续悬浮预览窗 · 当前起点：DOM 元素 (输入框)</span>
-        <div class="stage-bar-actions">
-          <button class="btn" id="float-trigger" style="height:26px;font-size:11.5px;padding:0 9px;">▶ 触发</button>
-          <button class="btn" id="float-expand" style="height:26px;font-size:11.5px;padding:0 9px;" aria-expanded="false">⤢ 放大</button>
-        </div>
+      <!-- Origin Type & Preset Direction -->
+      <div class="seg" id="origin-types" role="group" aria-label="Trigger origin">
+        <button aria-pressed="true" data-type="element">输入框</button>
+        <button aria-pressed="false" data-type="point">点击画布</button>
+        <button aria-pressed="false" data-type="preset">方向</button>
+        <select class="dir-select" id="dir-select" aria-label="Preset direction">
+          <option value="bottom">↓ bottom</option>
+          <option value="top">↑ top</option>
+          <option value="left">→ left</option>
+          <option value="right">← right</option>
+          <option value="center">◎ center</option>
+        </select>
       </div>
-      <div class="area" id="area">
-        <div class="stage-inner">
-          <div class="ws-head">
-            <div class="ws-crumb">
-              <span class="ws-app-icon"></span>
-              <b>Lumen</b><span style="opacity:.4">/</span><span>Q4 Product Pulse</span>
-              <span class="ws-live"><span class="ws-dot"></span>Live</span>
-            </div>
-            <div class="ws-tags">
-              <span class="ws-tag">Production</span>
-              <span class="ws-tag" id="stage-theme-tag">Light</span>
-            </div>
-          </div>
+    </div>
 
-          <div class="kpi-row">
-            <div class="kpi">
-              <div class="kpi-k">Active Users <span class="kpi-delta">+14.2%</span></div>
-              <div class="kpi-v">24,892</div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-k">Conversion <span class="kpi-delta">+0.8%</span></div>
-              <div class="kpi-v">4.86%</div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-k">Avg. Latency <span class="kpi-delta">-18ms</span></div>
-              <div class="kpi-v">142 ms</div>
-            </div>
-          </div>
+    <div class="top-actions">
+      <button class="btn" id="open-install">&lt;/&gt; 安装与接入</button>
+      <button class="btn" id="open-params">⚙ 参数</button>
+      <button class="btn" id="open-guide">最佳实践</button>
+      <button class="btn" id="theme-btn" title="切换亮/暗主题">◐</button>
+      <button class="btn primary" id="run-btn">▶ 触发</button>
+    </div>
+  </header>
 
-          <div class="ws-card grow">
-            <div class="ws-card-head">Session &amp; Revenue Velocity <span>Last 30 days</span></div>
-            <div class="chart-wrap">
-              <svg class="chart-svg" viewBox="0 0 520 150" preserveAspectRatio="none" data-halo-line>
-                <defs>
-                  <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.22"/>
-                    <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
-                  </linearGradient>
-                </defs>
-                <line class="chart-grid" x1="0" y1="30" x2="520" y2="30"/>
-                <line class="chart-grid" x1="0" y1="75" x2="520" y2="75"/>
-                <line class="chart-grid" x1="0" y1="120" x2="520" y2="120"/>
-                <path class="chart-line-sub" d="M0 112 C70 105, 110 92, 175 96 C240 100, 290 74, 355 78 C420 82, 470 58, 520 52"/>
-                <path d="M0 104 C65 98, 115 74, 175 78 C235 82, 285 44, 345 50 C405 56, 465 24, 520 18 L520 150 L0 150 Z" fill="url(#chartFill)"/>
-                <path class="chart-line" d="M0 104 C65 98, 115 74, 175 78 C235 82, 285 44, 345 50 C405 56, 465 24, 520 18"/>
-              </svg>
-              <div class="chart-axis">
-                <span>Oct 20</span><span>Oct 27</span><span>Nov 03</span><span>Nov 10</span><span>Nov 17</span>
-              </div>
-            </div>
-          </div>
+  <!-- Main Realistic Product Dashboard -->
+  <main class="area" id="area">
+    <div class="ws-layout">
+      <aside class="ws-sidebar">
+        <div class="ws-org"><span class="ws-app-icon"></span>Lumen Studio</div>
+        <div class="ws-nav">
+          <div class="ws-nav-item active">Overview <span class="ws-nav-badge">Live</span></div>
+          <div class="ws-nav-item">Conversion Funnels</div>
+          <div class="ws-nav-item">Retention Cohorts</div>
+          <div class="ws-nav-item">AI Copilot <span class="ws-nav-badge">⌘K</span></div>
+          <div class="ws-nav-item">Edge Telemetry</div>
+        </div>
+        <div class="ws-side-foot">
+          <b>Q4 Growth Sprint</b>
+          点击底部输入卡片上的上箭头，或任意位置体验光环效果
+        </div>
+      </aside>
 
-          <div class="ws-card activity-card">
-            <div class="ws-card-head">Recent Insights <span id="card-pal-name">Aurora</span></div>
-            <div class="insight-list">
-              <div class="insight-row">
-                <div class="insight-left"><span class="insight-dot ok"></span><span class="insight-title">Checkout funnel conversion +11.4%</span></div>
-                <span class="insight-time">2m ago</span>
-              </div>
-              <div class="insight-row">
-                <div class="insight-left"><span class="insight-dot"></span><span class="insight-title">Mobile onboarding v2 at 100%</span></div>
-                <span class="insight-time">18m ago</span>
-              </div>
-              <div class="insight-row">
-                <div class="insight-left"><span class="insight-dot ok"></span><span class="insight-title">EU-West edge latency stabilized</span></div>
-                <span class="insight-time">1h ago</span>
-              </div>
-              <div class="insight-row">
-                <div class="insight-left"><span class="insight-dot"></span><span class="insight-title">Weekly cohort report generated</span></div>
-                <span class="insight-time">3h ago</span>
-              </div>
-            </div>
+      <div class="stage-inner">
+        <div class="ws-head">
+          <div class="ws-crumb">
+            <b>Workspace</b><span style="opacity:.4">/</span><span>Q4 Product Pulse</span>
+            <span class="ws-live"><span class="ws-dot"></span>Live</span>
+          </div>
+          <div class="ws-tags">
+            <span class="ws-tag">Production</span>
+            <span class="ws-tag" id="stage-theme-tag">Light</span>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- 1. Hero & 7-Palette Showcase -->
-    <section id="preview">
-      <h1>shockwave-halo</h1>
-      <p class="lead">
-        会弯折页面的 Web 光环动效。触发时一道光环扫过内容区域并淡出，像玻璃透镜一样轻轻弯折像素、带一丝色散与边框微光。零依赖、不挑框架，<strong>静止时零开销</strong>。
-      </p>
-
-      <h2 style="margin-top:26px;">七种换色主题（Palette）</h2>
-      <p class="lead" style="margin-bottom:8px;">每套配色均针对亮色与暗色分别调校。点击任意小卡片，预览窗会立即切换配色并触发一次光环：</p>
-      <div class="pal-showcase" id="palettes"></div>
-    </section>
-
-    <!-- 2. Installation -->
-    <section id="install">
-      <h2>安装与接入</h2>
-      <p class="lead">支持 npm、CDN 免构建引入，或直接复制提示词让 AI 帮你接入 / 从零制作。</p>
-      <div class="seg" id="install-tabs" role="group" aria-label="Install method">
-        <button aria-pressed="true" data-tab="npm">npm</button>
-        <button aria-pressed="false" data-tab="cdn">CDN</button>
-        <button aria-pressed="false" data-tab="ai">Tell your AI</button>
-        <button aria-pressed="false" data-tab="scratch">从零开始（纯 Prompt）</button>
-      </div>
-      <div class="codebox">
-        <div class="code-head">
-          <span id="install-label">npm + html-to-image</span>
-          <button class="copy-btn" id="copy-install">复制</button>
-        </div>
-        <pre id="install-code" style="max-height:240px;overflow-y:auto;"></pre>
-      </div>
-    </section>
-
-    <!-- 3. Triggers (Unified with Right Persistent Floating Preview Window) -->
-    <section id="triggers">
-      <h2>触发方式与方向（origin）</h2>
-      <p class="lead">
-        <code>origin</code> 支持 3 类传参：<strong>DOM 元素</strong>、<strong>点击坐标</strong>、以及<strong>预设方向</strong>。所有演示均实时作用于右侧持续悬浮预览窗：
-      </p>
-
-      <div class="trigger-controls">
-        <div class="seg" id="origin-types" role="group" aria-label="Origin type">
-          <button aria-pressed="true" data-type="element">DOM 元素（默认）</button>
-          <button aria-pressed="false" data-type="point">点击坐标 { x, y }</button>
-          <button aria-pressed="false" data-type="preset">预设方向（5 种）</button>
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi-k">Active Users <span class="kpi-delta">+14.2%</span></div>
+            <div class="kpi-v">24,892</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-k">Conversion <span class="kpi-delta">+0.8%</span></div>
+            <div class="kpi-v">4.86%</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-k">Avg. Latency <span class="kpi-delta">-18ms</span></div>
+            <div class="kpi-v">142 ms</div>
+          </div>
         </div>
 
-        <!-- Preset Directions grouped together under one parameter type -->
-        <div class="dir-panel" id="dir-panel">
-          <span class="dir-label">点击切换预设方向：</span>
-          <button class="dir-btn" data-dir="bottom" aria-pressed="true">↓ bottom</button>
-          <button class="dir-btn" data-dir="top" aria-pressed="false">↑ top</button>
-          <button class="dir-btn" data-dir="left" aria-pressed="false">→ left</button>
-          <button class="dir-btn" data-dir="right" aria-pressed="false">← right</button>
-          <button class="dir-btn" data-dir="center" aria-pressed="false">◎ center</button>
+        <div class="ws-card grow">
+          <div class="ws-card-head">Session &amp; Revenue Velocity <span>Last 30 days</span></div>
+          <div class="chart-wrap">
+            <svg class="chart-svg" viewBox="0 0 520 150" preserveAspectRatio="none" data-halo-line>
+              <defs>
+                <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.22"/>
+                  <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line class="chart-grid" x1="0" y1="30" x2="520" y2="30"/>
+              <line class="chart-grid" x1="0" y1="75" x2="520" y2="75"/>
+              <line class="chart-grid" x1="0" y1="120" x2="520" y2="120"/>
+              <path class="chart-line-sub" d="M0 112 C70 105, 110 92, 175 96 C240 100, 290 74, 355 78 C420 82, 470 58, 520 52"/>
+              <path d="M0 104 C65 98, 115 74, 175 78 C235 82, 285 44, 345 50 C405 56, 465 24, 520 18 L520 150 L0 150 Z" fill="url(#chartFill)"/>
+              <path class="chart-line" d="M0 104 C65 98, 115 74, 175 78 C235 82, 285 44, 345 50 C405 56, 465 24, 520 18"/>
+            </svg>
+            <div class="chart-axis">
+              <span>Oct 20</span><span>Oct 27</span><span>Nov 03</span><span>Nov 10</span><span>Nov 17</span>
+            </div>
+          </div>
         </div>
 
-        <p class="trigger-tip" id="trigger-tip">当前为 DOM 元素模式：以右侧预览窗底部的 Ask AI 胶囊为起点，近边自动起弧。</p>
-      </div>
-
-      <div class="codebox">
-        <div class="code-head">
-          <span>触发代码</span>
-          <button class="copy-btn" id="copy-trigger">复制</button>
-        </div>
-        <pre id="trigger-code"></pre>
-      </div>
-    </section>
-
-    <!-- 4. Parameters -->
-    <section id="params">
-      <h2>核心参数</h2>
-      <p class="lead">拖动滑块即时调整右侧悬浮预览窗的光环宽度、弯折强度与时长：</p>
-      <div class="sliders">
-        <div class="s-card">
-          <div class="s-top"><code>ringWidth</code><span id="v-width">110px</span></div>
-          <input type="range" id="p-width" min="50" max="200" step="5" value="110">
-        </div>
-        <div class="s-card">
-          <div class="s-top"><code>bendPx</code><span id="v-bend">7px</span></div>
-          <input type="range" id="p-bend" min="0" max="16" step="1" value="7">
-        </div>
-        <div class="s-card">
-          <div class="s-top"><code>duration</code><span id="v-dur">1000ms</span></div>
-          <input type="range" id="p-dur" min="400" max="2000" step="100" value="1000">
+        <div class="ws-card activity-card">
+          <div class="ws-card-head">Recent Insights <span id="card-pal-name">Aurora</span></div>
+          <div class="insight-list">
+            <div class="insight-row">
+              <div class="insight-left"><span class="insight-dot ok"></span><span class="insight-title">Checkout funnel conversion +11.4%</span></div>
+              <span class="insight-time">2m ago</span>
+            </div>
+            <div class="insight-row">
+              <div class="insight-left"><span class="insight-dot"></span><span class="insight-title">Mobile onboarding v2 at 100%</span></div>
+              <span class="insight-time">18m ago</span>
+            </div>
+            <div class="insight-row">
+              <div class="insight-left"><span class="insight-dot ok"></span><span class="insight-title">EU-West edge latency stabilized</span></div>
+              <span class="insight-time">1h ago</span>
+            </div>
+            <div class="insight-row">
+              <div class="insight-left"><span class="insight-dot"></span><span class="insight-title">Weekly cohort report generated</span></div>
+              <span class="insight-time">3h ago</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="codebox">
-        <div class="code-head">
-          <span>当前配置</span>
-          <button class="copy-btn" id="param-run">▶ 在悬浮窗中触发</button>
-        </div>
-        <pre id="params-code"></pre>
-      </div>
-    </section>
-
-    <!-- 5. Best Practices -->
-    <section id="practices">
-      <h2>最佳实践</h2>
-      <p class="lead">把光环当作页面里的“标点符号”，只用来标记值得用户注意的瞬间。</p>
-      <div class="bp-grid">
-        <div class="bp-card">
-          <h4>✅ 适合使用</h4>
-          <ul>
-            <li>点击或 <code>⌘K</code> 唤醒 AI / 搜索框</li>
-            <li>提交表单、发布成功、AI 开始回答</li>
-            <li>进入聚焦预览、结账等重要转场</li>
-          </ul>
-        </div>
-        <div class="bp-card">
-          <h4>❌ 建议避免</h4>
-          <ul>
-            <li>鼠标 hover、下拉菜单、Tooltip</li>
-            <li>列表勾选、翻页、高频筛选</li>
-            <li>替代持续加载中的 Loading 动画</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
+    </div>
   </main>
+</div>
+
+<!-- Modals -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <!-- Modal 1: Install & Integrate -->
+  <div class="modal" id="modal-install" role="dialog" aria-modal="true" aria-label="安装与接入">
+    <div class="modal-head">
+      <h3>安装与接入</h3>
+      <button class="modal-close" data-close aria-label="关闭">×</button>
+    </div>
+    <p class="modal-desc">支持 npm、CDN 免构建引入，或直接复制提示词让 AI 帮你接入 / 从零制作。</p>
+    <div class="seg" id="install-tabs" role="group">
+      <button aria-pressed="true" data-tab="npm">npm</button>
+      <button aria-pressed="false" data-tab="cdn">CDN</button>
+      <button aria-pressed="false" data-tab="ai">Tell your AI</button>
+      <button aria-pressed="false" data-tab="scratch">从零开始（纯 Prompt）</button>
+    </div>
+    <div class="codebox">
+      <div class="code-head">
+        <span id="install-label">npm + html-to-image</span>
+        <button class="copy-btn" id="copy-install">复制</button>
+      </div>
+      <pre id="install-code"></pre>
+    </div>
+  </div>
+
+  <!-- Modal 2: Parameters -->
+  <div class="modal" id="modal-params" role="dialog" aria-modal="true" aria-label="核心参数调节">
+    <div class="modal-head">
+      <h3>核心参数调节</h3>
+      <button class="modal-close" data-close aria-label="关闭">×</button>
+    </div>
+    <p class="modal-desc">实时调整光环宽度、透镜弯折强度、动画时长与减弱动效模式。</p>
+    <div class="sliders">
+      <div class="s-card">
+        <div class="s-top"><code>ringWidth</code><span id="v-width">110px</span></div>
+        <input id="p-width" type="range" min="60" max="180" value="110">
+      </div>
+      <div class="s-card">
+        <div class="s-top"><code>bendPx</code><span id="v-bend">7px</span></div>
+        <input id="p-bend" type="range" min="0" max="16" value="7">
+      </div>
+      <div class="s-card">
+        <div class="s-top"><code>duration</code><span id="v-dur">1000ms</span></div>
+        <input id="p-dur" type="range" min="500" max="1800" step="50" value="1000">
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <button class="btn" id="motion-btn" aria-pressed="false">Motion: full</button>
+      <button class="btn primary" id="param-run">▶ 在仪表盘中预览</button>
+    </div>
+    <div class="codebox">
+      <div class="code-head">
+        <span>当前初始化配置</span>
+        <button class="copy-btn" id="copy-params">复制</button>
+      </div>
+      <pre id="params-code"></pre>
+    </div>
+  </div>
+
+  <!-- Modal 3: Best Practices & Trigger Code -->
+  <div class="modal" id="modal-guide" role="dialog" aria-modal="true" aria-label="最佳实践与触发代码">
+    <div class="modal-head">
+      <h3>最佳实践与触发方式</h3>
+      <button class="modal-close" data-close aria-label="关闭">×</button>
+    </div>
+    <p class="modal-desc">把光环当作页面里的“标点符号”，只用来标记值得用户注意的瞬间。</p>
+    <div class="bp-grid">
+      <div class="bp-card">
+        <h4>✅ 适合使用</h4>
+        <ul>
+          <li>点击或 <code>⌘K</code> 唤醒 AI / 搜索框</li>
+          <li>提交表单、发布成功、AI 开始回答</li>
+          <li>进入聚焦预览、结账等重要转场</li>
+        </ul>
+      </div>
+      <div class="bp-card">
+        <h4>❌ 建议避免</h4>
+        <ul>
+          <li>鼠标 hover、下拉菜单、Tooltip</li>
+          <li>列表勾选、翻页、高频筛选</li>
+          <li>替代持续加载中的 Loading 动画</li>
+        </ul>
+      </div>
+    </div>
+    <div class="codebox">
+      <div class="code-head">
+        <span id="trigger-code-label">当前触发方式代码</span>
+        <button class="copy-btn" id="copy-trigger">复制</button>
+      </div>
+      <pre id="trigger-code"></pre>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -509,7 +467,7 @@ import { createAIPill } from '../ai-pill.js';
 const $ = s => document.querySelector(s);
 const root = document.documentElement, area = $('#area');
 
-/* 1. Single Unified Floating Preview Window */
+/* 1. Dashboard Halo + Always-Open AI Input */
 const halo = createShockwaveHalo(area, { exclude: '.aip', onEnd: () => updateMode() });
 const pill = createAIPill(area, {
   placeholder: 'Ask AI about Q4 metrics, cohorts, or anomalies...',
@@ -522,44 +480,30 @@ const pill = createAIPill(area, {
 });
 halo.setOptions({ origin: pill.el });
 
-/* 2. Palettes Showcase */
+/* 2. 7 Palettes in Topbar */
 let currentPalette = 'Aurora';
-const PAL_INFO = {
-  Aurora: '蓝 → 紫 → 粉 → 暖桃 · 通用首选',
-  Halo:   '橙 → 琥珀 → 金 → 暖白 · 阳光透镜',
-  Frost:  '薄荷 → 水蓝 → 青柠 · 清爽面板',
-  Spark:  '紫罗兰 → 金 → 暖黄 · 灵感高亮',
-  Ocean:  '电光蓝 → 天青 → 冰蓝 · 冷静专注',
-  Rose:   '洋红 → 珊瑚粉 → 玫瑰金 · 柔和温度',
-  Silver: '冷银 → 玻璃白 · 极简无彩折射',
-};
 const palEl = $('#palettes');
-
-function renderPaletteCards() {
+function renderPalettes() {
   const isDark = root.dataset.theme === 'dark';
   palEl.innerHTML = '';
   for (const name of Object.keys(PALETTES)) {
     const c = isDark ? PALETTES[name].dark : PALETTES[name].light;
-    const card = document.createElement('button');
-    card.className = 'pal-card';
-    card.setAttribute('aria-pressed', String(name === currentPalette));
-    card.innerHTML = `
-      <div class="pal-bar" style="background:linear-gradient(90deg, rgb(${c[0]}), rgb(${c[1]}), rgb(${c[2]}), rgb(${c[3]}))"></div>
-      <div class="pal-title"><span>${name}</span><span class="pal-tag">Active</span></div>
-      <div class="pal-desc">${PAL_INFO[name]}</div>`;
-    card.onclick = () => {
+    const b = document.createElement('button');
+    b.className = 'pal-pill';
+    b.setAttribute('aria-pressed', String(name === currentPalette));
+    b.innerHTML = `<span class="pal-dot" style="background:linear-gradient(135deg,rgb(${c[0]}),rgb(${c[2]}))"></span>${name}`;
+    b.onclick = () => {
       currentPalette = name;
       halo.setOptions({ palette: name });
-      renderPaletteCards();
-      renderTokenList();
+      renderPalettes();
+      updateBadge();
       syncParams();
-      runFloatPreview();
+      runPreview();
     };
-    palEl.appendChild(card);
+    palEl.appendChild(b);
   }
 }
-
-function renderTokenList() {
+function updateBadge() {
   const isDark = root.dataset.theme === 'dark';
   $('#card-pal-name').textContent = `${currentPalette} · ${isDark ? 'dark' : 'light'}`;
 }
@@ -569,15 +513,14 @@ if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'da
 function syncThemeUI() {
   const isDark = root.dataset.theme === 'dark';
   $('#stage-theme-tag').textContent = isDark ? 'Dark' : 'Light';
-  renderPaletteCards();
-  renderTokenList();
+  renderPalettes();
+  updateBadge();
 }
-function toggleTheme() {
+$('#theme-btn').onclick = () => {
   if (halo.running) halo.stop();
   root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
   syncThemeUI();
-}
-$('#theme-btn').onclick = toggleTheme;
+};
 syncThemeUI();
 
 /* 4. Reduced Motion */
@@ -591,156 +534,22 @@ const syncMotion = () => {
 mb.onclick = () => { reduced = !reduced; syncMotion(); };
 syncMotion();
 
-/* 5. Install Tabs */
-const INSTALL = {
-  npm: {
-    label: 'npm + html-to-image',
-    code: `npm i github:amasun/shockwave-halo#v1.0.0 html-to-image
-
-import { createShockwaveHalo } from 'shockwave-halo';
-import { toCanvas } from 'html-to-image';
-
-const halo = createShockwaveHalo(area, {
-  snapshot: (el, opts) => toCanvas(el, opts),
-});`
-  },
-  cdn: {
-    label: 'ES Module CDN（免构建）',
-    code: `<script type="module">
-  import { createShockwaveHalo } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/shockwave-halo.js';
-  const halo = createShockwaveHalo(document.querySelector('#area'));
-<\/script>`
-  },
-  ai: {
-    label: '引用本库接入（复制给 Cursor / Claude Code / Codex）',
-    code: `Add shockwave-halo from https://github.com/amasun/shockwave-halo to my web app:
-mount it on my non-scrolling main content area, exclude the AI input,
-and trigger the Aurora halo when the AI input is focused or clicked.`
-  },
-  scratch: {
-    label: '不引用本站项目 · 纯 Prompt 让 AI 从零制作（跨平台通用）',
-    code: `Add a shockwave halo to my product: when something triggers it (by default, clicking or focusing the AI input), a faint halo of light sweeps across the page from one place and fades out, bending the page a few pixels as it passes, with a slight color split, in my dark and light modes. Build it inside my code and design system; do not change what the page does or how it looks at rest. Every value below is a default to start from, not a requirement.
-
-First look at my app (section 0). Then ask me these one at a time, offering the default each time, and wait for each answer:
-1. Trigger: what starts the halo (clicking or focusing the AI input, a keyboard shortcut, sending a message, the AI starting to answer, something else), and what happens if it is triggered again while one is running (restart, or ignore).
-2. Origin: where it spreads from (the AI input, a button, the bottom edge of the page, the point that was clicked, the middle of a panel), and over which area (the page's content area, one panel, the whole window). Toolbars always stay clear.
-3. Layers: the color rings (section 3) are always on; ask yes or no for each of the others: the bend (section 4), the color split, the refraction at the edges, the glints on lines and borders. The bend, the split and the refraction need the page as an image (section 6), so say what each costs on my platform.
-4. Colors: one of the four palettes in section 3, or my brand colors (then derive four rings, and a dark and a light version, from them), and which modes my app has.
-5. The input: leave my AI input as it is (the default), or turn it into the pill that springs open with a metal edge (section 1).
-Then propose how you will build it on my platform (section 6 is a starting point, not a prescription), with the cost and any fallback, and wait for my go-ahead.
-
-0. Start from what exists
-- Find the AI input, what opens or focuses it, the page container it sits in, its corner radius, any toolbars over it, and whether the app has a dark mode.
-- List what the page draws with (DOM, a canvas, a native view tree, a GPU renderer) and the platform version range: this decides how the bend can be done (section 6).
-
-1. The input (only if I chose the pill)
-- At rest: a pill 300 x 44 px, radius 22, white (dark: rgb(30 30 33)), a 1px hairline, a sparkle icon, the placeholder "Ask AI about this project" in 14px and a shortcut hint on the right. It sits centered on the page's content, 48px above the page's bottom.
-- On click: the pill dips to 97% for 90ms, then springs open into a card 460 x 100, radius 16, growing from its center and keeping its bottom edge where it was. Spring: progress = 1 - exp(-8t) * cos(6t) over 580ms (barely past the end, settles by the end). The card's content is laid out at its final size from the start and is revealed as it grows; it fades in from 30% of the way. Height and radius follow the same progress.
-- The open card: one line of text at 15px on a 22px line, 16px from the left, the caret first and the placeholder right after it; a hairline; then a toolbar 52px tall: a round add button, a short divider, two pickers (model, mode), and on the right a voice button and the send button, all 32px.
-- Shadow: wide, soft and far, not heavy: 0 0 0 1px rgb(15 23 42 / 0.09), 0 2px 4px rgb(15 23 42 / 0.04), 0 28px 64px -16px rgb(15 23 42 / 0.22). No focus ring; focus shows only as the caret.
-- The metal edge: a 1px border painted with a light silver gradient, linear-gradient(120deg, rgb(238 240 243), rgb(196 202 210) 28%, rgb(241 243 245) 50%, rgb(188 195 204) 74%, rgb(233 236 239)) (dark: rgb(74 79 87) to rgb(51 55 61)), with a highlight on top: conic-gradient(from <angle>, transparent 0 280deg, rgb(255 255 255 / 0.8) 325deg, transparent 360deg). Turn the angle from -60deg to 300deg over 900ms (ease-out) as the card opens, and fade the whole edge in and out over that time (opacity sin(pi * t), at most 0.75). Mask the gradient to the border only (mask with content-box exclude).
-- Closing: back to the pill in 320ms, ease-in-out.
-
-2. The halo's shape and timing
-- The halo is a circle that grows from the origin I chose. The defaults assume the origin is the AI input at the bottom of the page: the circle's center sits below the page, horizontally at the input's center and 650px below the page's bottom edge, so what shows is a wide arc rising from the bottom.
-- It starts with its middle at the page's bottom (radius 650) and grows by 800px over 1000ms, so it ends just past the page's top: radius = 650 + 800 * (1 - 2^(-9t)) / (1 - 2^(-9)). That is very fast at first and slow near the far edge.
-- For another origin, keep the same timing and set the start and the growth so the halo starts at the origin and ends just past the farthest edge of the area: from a point inside the area, center the circle on the point and start at a radius of 0 to 40px; from an edge, put the center beyond that edge, about two thirds of the area's width away.
-- Strength over the same time: min(1, t / 0.03) * (1 - t^2.2), so it is gone by the end and fades over its slow last stretch.
-- It starts on the trigger (40ms after the input starts opening, if it opens).
-- It stays in the area I chose: clip it to that area, with a straight edge under any toolbar and the area's own corner radius elsewhere (12px in the demo). It must never draw over a browser or app toolbar.
-
-3. The rings and the palettes
-- Across the halo's width sit four broad rings, one color each, inside to outside. With w = 110px and x = (distance from the center - radius) / w, ring i is centered at x = i - 1.5 with weight exp(-((x - c) / 0.8)^2); the color is the weighted average of the four, so neighbors blend softly. One fade covers all four: alpha = strength * exp(-1.1 * (x / 2)^2).
-- Light mode tints the page: color = mix(page, ring, alpha * 0.24) + ring * alpha * 0.24 * 0.2.
-- Dark mode adds light (screen): color = 1 - (1 - page) * (1 - ring * alpha * 0.3 * 1.5).
-- Palettes, rings inside to outside. Each is tuned twice: brighter and more saturated on dark, softer on light.
-  Aurora (blue through violet and pink to peach)
-    dark: rgb(80 140 255), rgb(160 110 255), rgb(255 110 180), rgb(255 190 140)
-    light: rgb(110 150 255), rgb(180 130 255), rgb(255 130 190), rgb(255 180 120)
-  Halo (orange through amber to gold, like low sun through a lens)
-    dark: rgb(255 150 60), rgb(255 190 70), rgb(255 225 120), rgb(255 245 210)
-    light: rgb(255 140 50), rgb(255 175 60), rgb(245 200 80), rgb(255 225 150)
-  Frost (mint and aqua with a touch of lime)
-    dark: rgb(80 220 175), rgb(70 195 225), rgb(180 240 150), rgb(235 255 245)
-    light: rgb(40 190 150), rgb(50 170 210), rgb(140 210 90), rgb(180 235 215)
-  Spark (violet into gold)
-    dark: rgb(140 100 255), rgb(200 130 255), rgb(255 200 110), rgb(255 235 170)
-    light: rgb(130 95 240), rgb(185 125 245), rgb(245 185 80), rgb(250 215 120)
-
-4. The bend
-- The whole halo bends the page as one lens, never ring by ring (ring by ring reads as water ripples). With z = x * 0.75: push = 7px * 2.33 * z * exp(-z^2), along the direction away from the circle's center; read the page at position - push. Outside the halo's middle the page stretches, inside it squeezes, over about the width of the rings and no wider.
-- Color split: at most a trace. Read red at 1.08 times the offset and blue at 0.92 times; text must stay clean.
-- The frame holds the page: fade the lens to nothing over the last 56px before the page's edge, so the edge stays straight.
-- The page's lines catch the light: where the halo passes, its rules, borders and the outlines of chips, cards and nodes brighten toward the ring color (mixed 20% toward white), at the halo's strength times exp(-1.4 * (x / 2)^2) times 0.3 on light and 0.14 on dark (a faint glint, not a redrawn border), read at their bent position so the glint follows them. Text and icons never light up. To find the lines, use a second capture of the page with every rule and border drawn white at its own width on black, and nothing else (no text, icons, pictures, fills or shadows); light the page where that capture is white, so a 1px border glints as 1px. Without a capture (a retrofit in the DOM), give each bordered element and divider a CSS variable from 0 to 1 by its distance to the halo's front each frame, and mix its border color toward the ring color by it.
-- The edge as a glass bevel: at the sides and the bottom (not under a toolbar), where the halo reaches the edge, read the last 60px of the page from up to 22px further in (22 * (1 - d/60)^2 * the halo's strength there), so content beside the edge stretches toward it. Where the halo meets the edge, add a thin line of light (exp(-d / 7)) in the ring color mixed 45% toward white.
-
-5. Rhythm
-- On the trigger: if the input opens, it dips to 97% for 90ms, springs open (580ms) and its edge highlight turns (900ms); the halo leaves 40ms after the opening starts and runs 1000ms. Without the input, the halo runs on the trigger.
-- Switching between dark and light cross-fades the halo's colors with the page; never cut.
-- Reduced motion: no bend, no split and no glints; the halo fades in and out in place at half strength over 600ms.
-- Draw only while the halo runs; nothing at rest.
-
-6. How to build it, by platform
-These are suggestions from what worked in the demo and what each platform offers; check them against my stack and its versions, and choose what fits. The halo itself (the rings, and the glints on lines and edges) is only an overlay and works anywhere. The bend needs the page as an image to sample from.
-- Web, as in the demo: a WebGL2 canvas over the page draws everything in one fragment pass from a snapshot of the page. Cap the pixel ratio at 2; the canvas ignores pointer events and is removed or hidden at rest.
-- Web, getting the snapshot:
-  - HTML-in-Canvas (WICG): a canvas with the page as its child, drawn with drawElementImage() or uploaded as a WebGL texture, live and with real browser rendering. Behind the canvas-draw-element flag in recent Chromium and reported on by default from Chrome 157; no Firefox or Safari yet. Use it where present.
-  - SVG foreignObject libraries (html-to-image, modern-screenshot): the browser renders the clone, so it is faithful, but images and fonts must be inlined or same-origin, the root needs a background color, and backdrop-filter is unreliable. Take it once on click (tens to a few hundred ms), then animate.
-  - html2canvas (or html2canvas-pro): it re-implements CSS on a canvas, so modern effects (backdrop-filter, some gradients, oklch) may come out wrong. A last resort.
-  - Fallback without a snapshot: draw only the halo in a transparent canvas over the page (light mode: normal alpha; dark mode: mix-blend-mode: screen or plus-lighter), and skip the bend. In Chromium only, a bend is possible with backdrop-filter pointing at an SVG filter with feDisplacementMap, at a cost.
-- iOS (SwiftUI, iOS 17+): put the halo in a Metal [[stitchable]] function and apply .layerEffect(shader, maxSampleOffset: CGSize(width: 30, height: 30)) to the page view: it can sample the view at bent positions and add the color, live. Drive radius and strength from a TimelineView or an animatable value. Below iOS 17: an overlay with an AngularGradient and blur, without the bend.
-- Android (API 33+): write the shader in AGSL as a RuntimeShader with a uniform shader named for the content, and set view.setRenderEffect(RenderEffect.createRuntimeShaderEffect(shader, "content")) on the page's root (in Compose: Modifier.graphicsLayer { renderEffect = ...asComposeRenderEffect() }). Update its uniforms every frame. Below 33: an overlay only.
-- Flutter (Impeller): a FragmentProgram with ImageFilter.shader inside a BackdropFilter clipped to the page; the engine passes the content as sampler 0 and its size as the first vec2. Use FlutterFragCoord(), flip y on GLES, and check ImageFilter.isShaderFilterSupported, with an overlay-only fallback.
-- Rust: render the UI into an offscreen texture, then draw one fullscreen pass with the same shader ported to WGSL that samples it.
-  - wgpu by hand: render target texture with TEXTURE_BINDING usage, a fullscreen triangle, uniforms in one buffer.
-  - Bevy: a custom post-processing node; call post_process_write() on the ViewTarget to get the source and destination textures, as in Bevy's custom post-processing example.
-  - egui or iced on wgpu: render the frame into a texture through the renderer's wgpu callback and composite with the shader; their widgets cannot sample what is under them by themselves.
-- Electron and Tauri: the web route; Electron can also take a snapshot with webContents.capturePage().
-
-7. Check
-- Dark and light, in the colors I chose: the text under the halo stays readable and unsplit; the halo never shows on a toolbar; the area's corners stay clean; the bend is no wider than the rings.
-- The trigger and the origin are the ones I chose, and the page works exactly as before.
-- It runs only while the halo is visible and costs nothing at rest.`
-  }
-};
-function renderInstall(tab) {
-  $('#install-label').textContent = INSTALL[tab].label;
-  const pre = $('#install-code');
-  pre.style.whiteSpace = (tab === 'ai' || tab === 'scratch') ? 'pre-wrap' : 'pre';
-  pre.textContent = INSTALL[tab].code;
-  $('#install-tabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab));
-}
-$('#install-tabs').addEventListener('click', e => {
-  const b = e.target.closest('button[data-tab]');
-  if (b) renderInstall(b.dataset.tab);
-});
-renderInstall('npm');
-
-/* 6. Unified Origin Types & 5 Preset Directions */
+/* 5. Origin Modes & Preset Directions */
 let originMode = 'element';
 let presetDir = 'bottom';
+const dirSelect = $('#dir-select');
 
 function syncOriginUI() {
   $('#origin-types').querySelectorAll('button[data-type]').forEach(b => {
     b.setAttribute('aria-pressed', String(b.dataset.type === originMode));
   });
-  $('#dir-panel').querySelectorAll('button[data-dir]').forEach(b => {
-    b.setAttribute('aria-pressed', String(originMode === 'preset' && b.dataset.dir === presetDir));
-  });
   area.classList.toggle('point-cursor', originMode === 'point');
-
   if (originMode === 'element') {
-    $('#trigger-tip').textContent = '当前为 DOM 元素模式：以右侧预览窗底部的输入卡片为起点，点击上箭头按钮即可触发光环。';
-    $('#stage-bar-hint').textContent = '持续悬浮预览窗 · 当前起点：DOM 元素 (输入框)';
     $('#trigger-code').textContent = `const halo = createShockwaveHalo(area, { origin: pill.el, exclude: '.aip' });\npill.onSubmit = () => halo.trigger({ origin: pill.el });`;
   } else if (originMode === 'point') {
-    $('#trigger-tip').textContent = '当前为点击坐标模式：直接点击右侧悬浮预览窗内任意位置，从点击处扩散成圆。';
-    $('#stage-bar-hint').textContent = '持续悬浮预览窗 · 点击画布任意位置触发';
     $('#trigger-code').textContent = `area.addEventListener('pointerdown', e => {\n  halo.trigger({ origin: { x: e.clientX, y: e.clientY } });\n});`;
   } else {
-    $('#trigger-tip').textContent = `当前为预设方向模式（'${presetDir}'）：点击上方任意方向按钮即可在右侧预览窗切换方向。`;
-    $('#stage-bar-hint').textContent = `持续悬浮预览窗 · 预设方向：'${presetDir}'`;
-    $('#trigger-code').textContent = `// 预设方向传参：'bottom' | 'top' | 'left' | 'right' | 'center'\nhalo.trigger({ origin: '${presetDir}' });`;
+    $('#trigger-code').textContent = `// 预设方向：'bottom' | 'top' | 'left' | 'right' | 'center'\nhalo.trigger({ origin: '${presetDir}' });`;
   }
 }
 
@@ -749,27 +558,35 @@ $('#origin-types').addEventListener('click', e => {
   if (!b) return;
   originMode = b.dataset.type;
   syncOriginUI();
-  runFloatPreview();
+  runPreview();
 });
-
-$('#dir-panel').addEventListener('click', e => {
-  const b = e.target.closest('button[data-dir]');
-  if (!b) return;
+dirSelect.addEventListener('change', () => {
   originMode = 'preset';
-  presetDir = b.dataset.dir;
+  presetDir = dirSelect.value;
   syncOriginUI();
   halo.trigger({ origin: presetDir });
 });
-
 area.addEventListener('pointerdown', e => {
   if (pill.el.contains(e.target)) return;
   if (originMode === 'point') halo.trigger({ origin: { x: e.clientX, y: e.clientY } });
   else if (originMode === 'preset') halo.trigger({ origin: presetDir });
 });
-
 syncOriginUI();
 
-/* 7. Parameters */
+function runPreview() {
+  if (originMode === 'element') {
+    halo.trigger({ origin: pill.el });
+  } else if (originMode === 'point') {
+    const r = area.getBoundingClientRect();
+    halo.trigger({ origin: { x: r.left + r.width * 0.55, y: r.top + r.height * 0.45 } });
+  } else {
+    halo.trigger({ origin: presetDir });
+  }
+}
+$('#run-btn').onclick = runPreview;
+$('#param-run').onclick = () => { closeModals(); runPreview(); };
+
+/* 6. Parameters */
 function syncParams() {
   const ringWidth = +$('#p-width').value;
   const bendPx = +$('#p-bend').value;
@@ -778,32 +595,68 @@ function syncParams() {
   $('#v-bend').textContent = bendPx + 'px';
   $('#v-dur').textContent = duration + 'ms';
   halo.setOptions({ ringWidth, bendPx, duration });
-  $('#params-code').textContent = `const halo = createShockwaveHalo(area, {
-  palette: '${currentPalette}',
-  ringWidth: ${ringWidth},
-  bendPx: ${bendPx},
-  duration: ${duration},
-});`;
+  $('#params-code').textContent = `const halo = createShockwaveHalo(area, {\n  palette: '${currentPalette}',\n  ringWidth: ${ringWidth},\n  bendPx: ${bendPx},\n  duration: ${duration},\n});`;
 }
 ['#p-width', '#p-bend', '#p-dur'].forEach(s => $(s).addEventListener('input', syncParams));
 syncParams();
 
-/* Trigger helper for the single unified floating preview */
-function runFloatPreview() {
-  if (originMode === 'element') {
-    halo.trigger({ origin: pill.el });
-  } else if (originMode === 'point') {
-    const r = area.getBoundingClientRect();
-    halo.trigger({ origin: { x: r.left + r.width * 0.5, y: r.top + r.height * 0.45 } });
-  } else {
-    halo.trigger({ origin: presetDir });
-  }
-}
-$('#side-trigger').onclick = runFloatPreview;
-$('#float-trigger').onclick = runFloatPreview;
-$('#param-run').onclick = runFloatPreview;
+/* 7. Install Tabs inside Modal */
+const INSTALL = {
+  npm: {
+    label: 'npm + html-to-image',
+    code: `npm i github:amasun/shockwave-halo#v1.0.0 html-to-image\n\nimport { createShockwaveHalo } from 'shockwave-halo';\nimport { toCanvas } from 'html-to-image';\n\nconst halo = createShockwaveHalo(area, {\n  snapshot: (el, opts) => toCanvas(el, opts),\n});`
+  },
+  cdn: {
+    label: 'ES Module CDN（免构建）',
+    code: `<script type="module">\n  import { createShockwaveHalo } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/shockwave-halo.js';\n  const halo = createShockwaveHalo(document.querySelector('#area'));\n<\/script>`
+  },
+  ai: {
+    label: '引用本库接入（复制给 Cursor / Claude Code / Codex）',
+    code: `Add shockwave-halo from https://github.com/amasun/shockwave-halo to my web app:\nmount it on my non-scrolling main content area, exclude the AI input,\nand trigger the Aurora halo when the AI input is focused or clicked.`
+  },
+  scratch: {
+    label: '不引用本站项目 · 纯 Prompt 让 AI 从零制作（跨平台通用）',
+    code: `Add a shockwave halo to my product: when something triggers it (by default, clicking or focusing the AI input), a faint halo of light sweeps across the page from one place and fades out, bending the page a few pixels as it passes, with a slight color split, in my dark and light modes. Build it inside my code and design system; do not change what the page does or how it looks at rest.
 
-/* Copy helpers */
+First look at my app. Then ask me about:
+1. Trigger & Retrigger ('restart' | 'ignore')
+2. Origin (AI input, button, edge, or pointer point) & Target Area
+3. Layers (color rings always on; bend, color split, edge glass bevel, line glints)
+4. Palette: Aurora, Halo, Frost, Spark, Ocean, Rose, Silver, or brand colors (tuned for dark & light)`
+  }
+};
+function renderInstall(tab) {
+  $('#install-label').textContent = INSTALL[tab].label;
+  const pre = $('#install-code');
+  pre.style.whiteSpace = (tab === 'ai' || tab === 'scratch') ? 'pre-wrap' : 'pre';
+  pre.textContent = INSTALL[tab].code;
+  $('#install-tabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === tab)));
+}
+$('#install-tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tab]');
+  if (b) renderInstall(b.dataset.tab);
+});
+renderInstall('npm');
+
+/* 8. Modal Open / Close & Copy Helpers */
+const backdrop = $('#modal-backdrop');
+function openModal(id) {
+  backdrop.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+  $(id).classList.add('active');
+  backdrop.classList.add('open');
+}
+function closeModals() {
+  backdrop.classList.remove('open');
+  backdrop.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+}
+$('#open-install').onclick = () => openModal('#modal-install');
+$('#open-params').onclick = () => openModal('#modal-params');
+$('#open-guide').onclick = () => openModal('#modal-guide');
+backdrop.addEventListener('click', e => {
+  if (e.target === backdrop || e.target.closest('[data-close]')) closeModals();
+});
+addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+
 function bindCopy(btnId, preId) {
   const b = $(btnId);
   b.onclick = () => {
@@ -813,37 +666,8 @@ function bindCopy(btnId, preId) {
   };
 }
 bindCopy('#copy-install', '#install-code');
+bindCopy('#copy-params', '#params-code');
 bindCopy('#copy-trigger', '#trigger-code');
-
-/* Expand / restore preview Dashboard as viewport floating modal */
-const floatStage = $('#float-stage');
-const stageBackdrop = $('#stage-backdrop');
-const expandBtn = $('#float-expand');
-function setExpanded(next) {
-  if (halo.running) halo.stop();
-  floatStage.classList.toggle('is-expanded', next);
-  stageBackdrop.classList.toggle('show', next);
-  expandBtn.setAttribute('aria-expanded', String(next));
-  expandBtn.textContent = next ? '⤡ 还原' : '⤢ 放大';
-  document.body.style.overflow = next ? 'hidden' : '';
-  requestAnimationFrame(() => halo.invalidate?.());
-}
-expandBtn.onclick = () => setExpanded(!floatStage.classList.contains('is-expanded'));
-stageBackdrop.onclick = () => setExpanded(false);
-addEventListener('keydown', e => {
-  if (e.key === 'Escape' && floatStage.classList.contains('is-expanded')) setExpanded(false);
-});
-
-/* Active sidebar highlight on scroll */
-const navLinks = [...document.querySelectorAll('#sidenav-links a')];
-const obs = new IntersectionObserver(entries => {
-  for (const en of entries) {
-    if (en.isIntersecting) {
-      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id));
-    }
-  }
-}, { rootMargin: '-20% 0px -65% 0px' });
-navLinks.forEach(a => { const sec = $(a.getAttribute('href')); if (sec) obs.observe(sec); });
 
 function updateMode() {
   $('#mode').textContent = halo.mode + (halo.snapshotMs ? ` · ${halo.snapshotMs}ms` : '');
