@@ -110,11 +110,16 @@
   .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform .2s ease; }
   .switch[aria-checked="true"] { background: var(--accent); }
   .switch[aria-checked="true"]::after { transform: translateX(12px); }
+  .shape-select { width: 100%; height: 28px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 12px; padding: 0 6px; cursor: pointer; }
+  .m-knobs .knob-wide { grid-column: 1 / -1; }
   .reset-btn { margin: 4px 10px 2px; width: calc(100% - 20px); height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 12.5px; cursor: pointer; }
   .reset-btn:hover { color: var(--text); border-color: var(--line-strong); background: var(--soft); }
   .m-knobs .reset-btn { grid-column: 1 / -1; }
   .ws-hint { margin-top: auto; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-size: 11.5px; color: var(--muted); line-height: round(1.45em, 1px); }
   .ws-hint b { color: var(--text); }
+  /* short windows: drop the least important sidebar text so the settings never get clipped */
+  @media (max-height: 860px) { .ws-intro ul, .ws-hint { display: none; } }
+  @media (max-height: 700px) { .ws-intro p { display: none; } }
 
   .stage-inner {
     padding: 18px 22px 150px; min-width: 0; min-height: 0;
@@ -318,7 +323,9 @@
   <div class="knob"><div class="knob-top"><span>Bend strength</span><output data-out="bendPx"></output></div><input type="range" data-param="bendPx" min="0" max="16" value="7" aria-label="Bend strength (bendPx)"></div>
   <div class="knob"><div class="knob-top"><span>Duration</span><output data-out="duration"></output></div><input type="range" data-param="duration" min="500" max="1800" step="50" value="1000" aria-label="Duration (duration)"></div>
   <label class="toggle-row"><span>Reduced motion</span><button class="switch" role="switch" aria-checked="false" data-param="reduced" aria-label="Reduced motion"></button></label>
-  <button class="reset-btn" type="button" data-action="reset-params" title="Restore ring width, bend, duration, reduced motion, palette and origin to their defaults">↺ Reset settings</button>
+  <label class="toggle-row"><span>Dot-matrix wave</span><button class="switch" role="switch" aria-checked="false" data-param="dots" aria-label="Dot-matrix wave"></button></label>
+  <div class="knob knob-wide"><div class="knob-top"><span>Dot shape</span></div><select class="shape-select" data-param="dotShape" aria-label="Dot shape (dotShape)"><option value="circle">Circle</option><option value="square">Square</option><option value="star">Four-point star</option><option value="cross">Cross</option><option value="grid">Grid lines</option></select></div>
+  <button class="reset-btn" type="button" data-action="reset-params" title="Restore ring width, bend, duration, reduced motion, dot matrix, palette and origin to their defaults">↺ Reset settings</button>
 </template>
 
   <dialog class="halo-dlg" id="halo-dlg-install" aria-label="Install &amp; integrate">
@@ -379,7 +386,7 @@ if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'da
 /* ---------- state ---------- */
 const state = {
   palette: 'Aurora', origin: 'element', dir: 'bottom',
-  ringWidth: 110, bendPx: 7, duration: 1000,
+  ringWidth: 110, bendPx: 7, duration: 1000, dots: false, dotShape: 'circle',
   reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
 };
 
@@ -456,13 +463,15 @@ function syncKnobs() {
     $$(`output[data-out="${k}"]`).forEach(o => o.textContent = fmt[k](state[k]));
   }
   $$('[data-param="reduced"]').forEach(s => s.setAttribute('aria-checked', String(state.reduced)));
-  halo.setOptions({ ringWidth: state.ringWidth, bendPx: state.bendPx, duration: state.duration, reducedMotion: state.reduced });
+  $$('[data-param="dots"]').forEach(s => s.setAttribute('aria-checked', String(state.dots)));
+  $$('select[data-param="dotShape"]').forEach(i => { if (i.value !== state.dotShape) i.value = state.dotShape; });
+  halo.setOptions({ ringWidth: state.ringWidth, bendPx: state.bendPx, duration: state.duration, reducedMotion: state.reduced, layers: { dots: state.dots }, dotShape: state.dotShape });
   syncCode();
 }
 let previewT = 0;
 document.addEventListener('input', e => {
-  const k = e.target.dataset?.param; if (!k || k === 'reduced') return;
-  state[k] = +e.target.value; syncKnobs();
+  const k = e.target.dataset?.param; if (!k || k === 'reduced' || k === 'dots') return;
+  state[k] = k === 'dotShape' ? e.target.value : +e.target.value; syncKnobs();
 });
 // preview once the user lets go of a slider
 document.addEventListener('change', e => {
@@ -470,12 +479,12 @@ document.addEventListener('change', e => {
   clearTimeout(previewT); previewT = setTimeout(runPreview, 120);
 });
 document.addEventListener('click', e => {
-  const s = e.target.closest('[data-param="reduced"]'); if (!s) return;
-  e.preventDefault(); state.reduced = !state.reduced; syncKnobs(); runPreview();
+  const s = e.target.closest('[data-param="reduced"], [data-param="dots"]'); if (!s) return;
+  e.preventDefault(); const k = s.dataset.param === 'dots' ? 'dots' : 'reduced'; state[k] = !state[k]; syncKnobs(); runPreview();
 });
 
 /* ---------- one-click reset ---------- */
-const DEFAULTS = { palette: 'Aurora', origin: 'element', dir: 'bottom', ringWidth: 110, bendPx: 7, duration: 1000 };
+const DEFAULTS = { palette: 'Aurora', origin: 'element', dir: 'bottom', ringWidth: 110, bendPx: 7, duration: 1000, dots: false, dotShape: 'circle' };
 document.addEventListener('click', e => {
   if (!e.target.closest('[data-action="reset-params"]')) return;
   Object.assign(state, DEFAULTS, { reduced: matchMedia('(prefers-reduced-motion: reduce)').matches });
@@ -490,6 +499,8 @@ function syncCode() {
   if (state.bendPx !== 7) opts.push(`bendPx: ${state.bendPx}`);
   if (state.duration !== 1000) opts.push(`duration: ${state.duration}`);
   if (state.reduced) opts.push(`reducedMotion: true`);
+  if (state.dots) opts.push(`layers: { dots: true }`);
+  if (state.dots && state.dotShape !== 'circle') opts.push(`dotShape: '${state.dotShape}'`);
   if (state.origin === 'preset') opts.push(`origin: '${state.dir}'`);
   $('#params-code').textContent = `const halo = createShockwaveHalo(area, {\n  ${opts.join(',\n  ')},\n  exclude: '.aip',\n});`;
   $('#trigger-code').textContent =
