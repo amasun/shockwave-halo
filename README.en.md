@@ -34,7 +34,7 @@ Two **zero-dependency**, **framework-agnostic** ES modules (works with React, Vu
 |---|---|---|
 | [`shockwave-halo.js`](shockwave-halo.js) | Core Halo | Drives the halo sweep, lens bend, color split, and border glints; falls back gracefully to color rings only when a snapshot isn't available |
 | [`ai-pill.js`](ai-pill.js) | Optional Input | Pill-shaped AI input that springs open into a card with a turning metal highlight border |
-| [`demo/index.html`](demo/index.html) | Full Demo | Interactive showcase with origin switching, 4 palettes, light/dark mode, and reduced motion |
+| [`demo/index.html`](demo/index.html) | Full Demo | Interactive showcase with origin switching, 7 palettes, light/dark mode, and reduced motion |
 
 ---
 
@@ -153,7 +153,7 @@ Then open `http://localhost:8788/demo/` in your browser (browsers block ES modul
 | **Viewport Point** `{ x, y }` | Expands radially from the clicked point | `halo.trigger({ origin: { x: e.clientX, y: e.clientY } })` |
 | **Preset Edge / Center** | `'bottom'` / `'top'` / `'left'` / `'right'` rises from an edge; `'center'` expands from the middle | `origin: 'bottom'` (default) |
 
-### 2. Four Built-in Palettes (`palette`)
+### 2. Seven Built-in Palettes (`palette`)
 
 Each palette is tuned separately for **dark mode** (brighter, more saturated) and **light mode** (softer, airy), blending four rings from inside to outside:
 
@@ -163,6 +163,9 @@ Each palette is tuned separately for **dark mode** (brighter, more saturated) an
 | **`Halo`** | Orange → Amber → Gold → Warm White | Warm brand tones, low-sun lens feel |
 | **`Frost`** | Mint → Aqua → Lime → Ice White | Data dashboards & crisp developer tools |
 | **`Spark`** | Violet → Lavender → Gold → Warm Yellow | Creative tools, highlights & inspiration moments |
+| **`Ocean`** | Deep Blue → Cyan → Sky → Crisp White | Tech dashboards, blue-toned minimal workspaces |
+| **`Rose`** | Rose → Blush Pink → Coral → Soft Peach | Design tools, expressive feedback & consumer apps |
+| **`Silver`** | Slate Silver → Mist → Platinum → Crisp White | Monochrome UIs, hardware-inspired minimal accents |
 
 You can also pass a custom palette: `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }`.
 
@@ -192,7 +195,7 @@ You can also pass a custom palette: `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }
 | Option | Default | Description |
 |---|---|---|
 | `origin` | `'bottom'` | Where the halo starts: an `Element`, `{x, y}` (viewport coordinates), or `'bottom' \| 'top' \| 'left' \| 'right' \| 'center'` |
-| `palette` | `'Aurora'` | `'Aurora' \| 'Halo' \| 'Frost' \| 'Spark'`, or custom `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }` |
+| `palette` | `'Aurora'` | `'Aurora' \| 'Halo' \| 'Frost' \| 'Spark' \| 'Ocean' \| 'Rose' \| 'Silver'`, or custom `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }` |
 | `theme` | `'auto'` | `'auto'` follows `<html data-theme>` / `.dark` / system preference; also accepts `'light'`, `'dark'`, or a function returning either. Colors cross-fade smoothly when switching themes |
 | `layers` | all `true` | `{ bend, split, bevel, glints }`: page bend, color split, edge glass refraction, and line glints (color rings are always on) |
 | `bevelEdges` | `['left','right','bottom']` | Which edges act as glass bevels (exclude any edge sitting under a toolbar) |

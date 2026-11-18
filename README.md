@@ -24,7 +24,7 @@
 ---
 
 > [!TIP]
-> **在线体验**：打开 [Shockwave Halo Demo](https://amasun.github.io/shockwave-halo/)，点击底部输入框即可看到效果；顶部工具栏支持实时切换起点、四套配色、明暗主题与减弱动效。
+> **在线体验**：打开 [Shockwave Halo Demo](https://amasun.github.io/shockwave-halo/)，点击底部输入框即可看到效果；顶部工具栏支持实时切换起点、七套配色、明暗主题与减弱动效。
 
 ## 包含什么
 
@@ -34,7 +34,7 @@
 |---|---|---|
 | [`shockwave-halo.js`](shockwave-halo.js) | 核心光环 | 负责光环动画、透镜弯折、色散与边框高光；拿不到页面截图时自动降级为纯色环叠加，不影响使用 |
 | [`ai-pill.js`](ai-pill.js) | 可选输入框 | 胶囊式 AI 输入框，点开会弹性展开成卡片，边缘带一圈转动的金属高光 |
-| [`demo/index.html`](demo/index.html) | 完整示例 | 展示起点切换、四套配色、明暗主题与减弱动效 |
+| [`demo/index.html`](demo/index.html) | 完整示例 | 展示起点切换、七套配色、明暗主题与减弱动效 |
 
 ---
 
@@ -153,7 +153,7 @@ python3 -m http.server 8788
 | **视口坐标** `{ x, y }` | 以点击/触发点为圆心向外扩散 | `halo.trigger({ origin: { x: e.clientX, y: e.clientY } })` |
 | **预设位置** | `'bottom'` / `'top'` / `'left'` / `'right'` 从对应边起弧；`'center'` 从正中心扩散 | `origin: 'bottom'`（默认） |
 
-### 2. 四套内置配色（`palette`）
+### 2. 七套内置配色（`palette`）
 
 每套配色均针对**暗色**（更明亮饱和）与**亮色**（更柔和通透）分别调校，四圈颜色由内到外平滑混合：
 
@@ -163,6 +163,9 @@ python3 -m http.server 8788
 | **`Halo`** | 橙 → 琥珀 → 金 → 暖白 | 低角度阳光质感、温暖品牌基调 |
 | **`Frost`** | 薄荷绿 → 水蓝 → 青柠 → 冰白 | 清爽数据面板、冷静工具类产品 |
 | **`Spark`** | 紫罗兰 → 淡紫 → 金 → 暖黄 | 创作、灵感触发、高亮强调 |
+| **`Ocean`** | 深海蓝 → 天青 → 冰蓝 → 透白 | 科技看板、海洋/极简蓝调、专业工作台 |
+| **`Rose`** | 玫瑰红 → 绯粉 → 珊瑚橘 → 柔粉 | 设计工具、情感化反馈、生活/消费级产品 |
+| **`Silver`** | 钢蓝灰 → 银灰 → 浅铂银 → 极光白 | 极简黑白灰界面、高级硬件感、低调点缀 |
 
 也支持传入自定义配色对象：`{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }`。
 
@@ -192,7 +195,7 @@ python3 -m http.server 8788
 | 选项 | 默认值 | 说明 |
 |---|---|---|
 | `origin` | `'bottom'` | 光环起点：DOM 元素、`{x, y}`（视口坐标），或 `'bottom' \| 'top' \| 'left' \| 'right' \| 'center'` |
-| `palette` | `'Aurora'` | `'Aurora' \| 'Halo' \| 'Frost' \| 'Spark'`，或自定义 `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }` |
+| `palette` | `'Aurora'` | `'Aurora' \| 'Halo' \| 'Frost' \| 'Spark' \| 'Ocean' \| 'Rose' \| 'Silver'`，或自定义 `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }` |
 | `theme` | `'auto'` | `'auto'` 自动跟随 `<html data-theme>` / `.dark` / 系统深浅色；也可传 `'light'`、`'dark'` 或返回其一的函数。切换主题时颜色平滑过渡 |
 | `layers` | 全开 | `{ bend, split, bevel, glints }`：页面弯折、色散、边缘玻璃折射、线条高光（彩色光环始终开启） |
 | `bevelEdges` | `['left','right','bottom']` | 哪些边作为玻璃边缘参与折射（贴着工具栏的那条边不要放进来） |
