@@ -3,53 +3,60 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shockwave Halo — 交互式文档与演示</title>
+<title>shockwave-halo — 会弯折页面的 Web 光环动效</title>
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
 <style>
   :root {
-    --bg: #f4f5f7; --surface: #ffffff; --card: #ffffff; --soft: #f5f6f8; --code-bg: #f8fafc;
-    --line: rgb(15 23 42 / 0.09); --line-strong: rgb(15 23 42 / 0.16);
+    --bg: #fafafa; --surface: #ffffff; --card: #ffffff; --soft: #f3f4f6; --code-bg: #f8fafc;
+    --line: rgb(15 23 42 / 0.08); --line-strong: rgb(15 23 42 / 0.15);
     --text: #0f172a; --muted: #64748b; --faint: #94a3b8;
-    --accent: #4f6bff; --ok: #12a26b; --warn: #d98a12;
-    --shadow: 0 0 0 1px rgb(15 23 42 / 0.08), 0 4px 12px rgb(15 23 42 / 0.04), 0 24px 48px -16px rgb(15 23 42 / 0.14);
+    --accent: #4f6bff; --ok: #12a26b;
+    --shadow: 0 0 0 1px rgb(15 23 42 / 0.07), 0 8px 30px -12px rgb(15 23 42 / 0.12);
     color-scheme: light;
   }
   [data-theme="dark"] {
-    --bg: #09090b; --surface: #131316; --card: #18181c; --soft: #1e1e23; --code-bg: #111114;
+    --bg: #09090b; --surface: #121215; --card: #18181c; --soft: #1f1f24; --code-bg: #111114;
     --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14);
     --text: #ececf1; --muted: #8d8d98; --faint: #5f5f69;
-    --accent: #8ea2ff; --ok: #3ccf91; --warn: #f0b048;
-    --shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 4px 12px rgb(0 0 0 / 0.35), 0 24px 48px -16px rgb(0 0 0 / 0.65);
+    --accent: #8ea2ff; --ok: #3ccf91;
+    --shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 12px 36px -12px rgb(0 0 0 / 0.65);
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
-    font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", system-ui, sans-serif;
+    font: 14.5px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-  }
-  body, .area, .card, .chip, .node, .row, .btn, .seg, .seg button, .stat, hr, .wire, .avatar, .codebox, .pal-card, .bp-card {
-    transition: background-color .4s ease, color .4s ease, border-color .4s ease, box-shadow .4s ease, fill .4s, stroke .4s;
+    transition: background-color .35s ease, color .35s ease;
   }
 
-  /* Top Navigation */
-  .topnav {
-    position: sticky; top: 0; z-index: 40; height: 54px;
-    display: flex; align-items: center; gap: 14px; padding: 0 24px;
-    background: color-mix(in srgb, var(--bg) 86%, transparent);
+  /* Top Bar */
+  .nav {
+    position: sticky; top: 0; z-index: 40; height: 52px;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
     backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
   }
-  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 14px; color: var(--text); text-decoration: none; }
-  .logo { width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, #4f6bff, #b26bff); }
-  .badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); font-weight: 500; }
-  .navlinks { display: flex; gap: 16px; margin-left: 12px; }
-  .navlinks a { color: var(--muted); text-decoration: none; font-size: 13px; }
-  .navlinks a:hover { color: var(--text); }
+  .nav-in {
+    max-width: 760px; height: 100%; margin: 0 auto; padding: 0 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .brand { font-weight: 600; font-size: 14px; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+  .dot-logo { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #4f6bff, #ff6eb4); }
+  .nav-links { display: flex; gap: 14px; margin-left: 8px; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  .nav-links a:hover { color: var(--text); }
   .spacer { flex: 1; }
-  .mode-pill { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; padding: 3px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+  .meta { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
 
-  /* Buttons & Segmented Controls */
+  /* Single Column Container (glimm-style) */
+  .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px 96px; display: flex; flex-direction: column; gap: 56px; }
+  section { scroll-margin-top: 72px; }
+  h1 { font-size: 32px; letter-spacing: -0.03em; margin: 0 0 10px; line-height: 1.2; }
+  h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 8px; }
+  p.lead { margin: 0 0 18px; color: var(--muted); font-size: 15px; }
+
+  /* Controls */
   .btn {
     height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line);
     background: var(--surface); color: var(--text); font: inherit; font-size: 12.5px; font-weight: 500;
@@ -58,344 +65,235 @@
   .btn:hover { border-color: var(--line-strong); }
   .btn.primary { background: var(--text); color: var(--surface); border-color: transparent; }
   .btn.primary:hover { opacity: 0.9; }
-  .seg { display: inline-flex; padding: 2px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); }
+  .seg { display: inline-flex; flex-wrap: wrap; padding: 2px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); }
   .seg button {
     border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12.5px;
-    height: 26px; padding: 0 11px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+    height: 26px; padding: 0 10px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
   }
   .seg button[aria-pressed="true"] { background: var(--soft); color: var(--text); font-weight: 500; }
+  .sw { width: 8px; height: 8px; border-radius: 50%; }
 
-  /* Two-Column Split Layout: Left Guide + Right Sticky Live Stage */
-  .layout {
-    max-width: 1360px; margin: 0 auto; padding: 28px 24px 64px;
-    display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 36px; align-items: start;
+  /* Preview Card (#area — clean AI Note / Canvas surface, NOT a heavy dashboard) */
+  .preview-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .area {
+    position: relative; height: 420px; border-radius: 14px; overflow: hidden;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
+    transition: background-color .35s ease, border-color .35s ease, box-shadow .35s ease;
   }
-
-  /* Left Guide Column */
-  .guide { display: flex; flex-direction: column; gap: 44px; }
-  .step { scroll-margin-top: 76px; }
-  .step-num { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 6px; }
-  .step h2 { font-size: 20px; margin: 0 0 8px; letter-spacing: -0.02em; }
-  .step h1 { font-size: 28px; margin: 0 0 10px; letter-spacing: -0.025em; line-height: 1.2; }
-  .lead { margin: 0 0 16px; color: var(--muted); font-size: 14.5px; line-height: 1.65; }
-  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .stage {
+    position: absolute; inset: 0; padding: 28px 30px 110px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .stage-top { display: flex; align-items: center; justify-content: space-between; }
+  .stage-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .stage-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .pill-tag { font-size: 11.5px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); }
+  .note-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .note-card {
+    border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--card);
+    transition: background-color .35s ease, border-color .35s ease;
+  }
+  .note-card h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+  .note-card p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .wave-box {
+    position: relative; flex: 1; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--card); overflow: hidden; display: flex; align-items: center; padding: 0 18px;
+    transition: background-color .35s ease, border-color .35s ease;
+  }
+  .wave-box svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wave-line { fill: none; stroke: var(--line-strong); stroke-width: 1.25; }
+  .wave-label { position: relative; font-size: 12px; color: var(--faint); }
 
   /* Code Blocks */
-  .codebox {
-    position: relative; border: 1px solid var(--line); border-radius: 10px;
-    background: var(--code-bg); overflow: hidden; margin-top: 10px;
-  }
-  .codebox-head {
+  .codebox { border: 1px solid var(--line); border-radius: 10px; background: var(--code-bg); overflow: hidden; margin-top: 12px; }
+  .code-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 7px 12px; border-bottom: 1px solid var(--line); font-size: 11.5px; color: var(--muted);
+    padding: 7px 12px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted);
   }
   .copy-btn {
     border: 1px solid var(--line); background: var(--surface); color: var(--text);
-    font: inherit; font-size: 11px; padding: 2px 8px; border-radius: 6px; cursor: pointer;
+    font: inherit; font-size: 11.5px; padding: 2px 8px; border-radius: 6px; cursor: pointer;
   }
-  .copy-btn:hover { border-color: var(--line-strong); }
   pre {
-    margin: 0; padding: 12px 14px; overflow-x: auto;
+    margin: 0; padding: 13px 15px; overflow-x: auto;
     font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    color: var(--text);
   }
 
-  /* Palette Grid */
-  .pal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
-  .pal-card {
-    text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--surface); cursor: pointer; font: inherit; color: var(--text);
-  }
-  .pal-card:hover { border-color: var(--line-strong); }
-  .pal-card[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .pal-bar { height: 8px; border-radius: 999px; margin-bottom: 8px; }
-  .pal-name { font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; }
-  .pal-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  /* Sliders & Props */
+  .sliders { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
+  .s-card { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: var(--surface); }
+  .s-top { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px; }
+  .s-top code { font-family: ui-monospace, monospace; font-weight: 600; }
+  .s-top span { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .s-card input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
 
-  /* Parameter Controls */
-  .ctrl-list { display: flex; flex-direction: column; gap: 12px; margin: 12px 0; }
-  .ctrl {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
-  }
-  .ctrl-info { display: flex; flex-direction: column; }
-  .ctrl-name { font-weight: 600; font-size: 13px; font-family: ui-monospace, monospace; }
-  .ctrl-desc { font-size: 12px; color: var(--muted); }
-  .ctrl-right { display: flex; align-items: center; gap: 8px; }
-  .ctrl input[type="range"] { width: 120px; accent-color: var(--accent); cursor: pointer; }
-  .ctrl-val { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted); min-width: 44px; text-align: right; }
-
-  .layer-checks { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
-  .chk {
-    display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
-    border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
-    font-size: 12.5px; cursor: pointer; user-select: none;
-  }
-  .chk input { accent-color: var(--accent); margin: 0; }
-
-  /* Best Practices */
-  .bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .bp-card { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+  .bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .bp-card { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--surface); }
   .bp-card h4 { margin: 0 0 8px; font-size: 13px; }
-  .bp-card ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
+  .bp-card ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
 
-  /* Right Sticky Live Stage */
-  .stage-wrap { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 10px; }
-  .stage-bar { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 0 4px; }
-  .area {
-    position: relative; height: 600px; border-radius: 14px; overflow: hidden;
-    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
-  }
-  .content { position: absolute; inset: 0; padding: 24px 26px 128px; display: flex; flex-direction: column; gap: 18px; }
-  .head { display: flex; align-items: flex-end; gap: 12px; }
-  .head h3 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
-  .head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
-  .chips { display: flex; gap: 6px; margin-left: auto; }
-  .chip { font-size: 11.5px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--surface); }
-  .chip .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: var(--card); }
-  .stat .k { font-size: 11.5px; color: var(--muted); }
-  .stat .v { font-size: 19px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
-  .stat .d { font-size: 11.5px; color: var(--ok); }
-  .cols { display: grid; grid-template-columns: 1.35fr 1fr; gap: 10px; flex: 1; min-height: 0; }
-  .card { border: 1px solid var(--line); border-radius: 10px; background: var(--card); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .card h4 { margin: 0; font-size: 12.5px; font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
-  .card h4 span { color: var(--faint); font-weight: 400; }
-  .graph { position: relative; flex: 1; min-height: 150px; }
-  .graph svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .wire { fill: none; stroke: var(--line-strong); stroke-width: 1.25; }
-  .node { position: absolute; transform: translate(-50%, -50%); padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); font-size: 11.5px; white-space: nowrap; }
-  .node i { font-style: normal; color: var(--faint); margin-left: 5px; }
-  .list { padding: 0 14px; overflow: hidden; }
-  .row { display: flex; gap: 9px; align-items: center; padding: 9px 0; font-size: 12.5px; }
-  .avatar { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 10.5px; font-weight: 600; color: #fff; }
-  .row .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .row .t b { font-weight: 600; }
-  .row .when { color: var(--faint); font-size: 11.5px; }
-  hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
-
-  @media (max-width: 1024px) {
-    .layout { grid-template-columns: 1fr; }
-    .stage-wrap { position: static; order: -1; }
-    .area { height: 480px; }
-    .navlinks { display: none; }
-  }
   @media (max-width: 640px) {
-    .stats { grid-template-columns: repeat(2, 1fr); }
-    .cols { grid-template-columns: 1fr; }
-    .cols .card:last-child, .chips { display: none; }
-    .pal-grid, .bp-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .note-grid, .sliders, .bp-grid { grid-template-columns: 1fr; }
+    .area { height: 460px; }
   }
 </style>
 </head>
 <body>
 
-<header class="topnav">
-  <a class="brand" href="#intro"><span class="logo"></span>Shockwave Halo</a>
-  <span class="badge">v1.0.0 · MIT</span>
-  <nav class="navlinks">
-    <a href="#intro">示例</a>
-    <a href="#install">安装</a>
-    <a href="#triggers">触发</a>
-    <a href="#themes">主题与配色</a>
-    <a href="#params">参数调校</a>
-    <a href="#practices">最佳实践</a>
-  </nav>
-  <div class="spacer"></div>
-  <span class="mode-pill" id="mode">…</span>
-  <button class="btn" id="theme-btn">◐ 明暗切换</button>
-  <button class="btn primary" id="replay-btn">▶ 触发一次</button>
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="#preview"><span class="dot-logo"></span>shockwave-halo</a>
+    <span class="meta">v1.0.0 · MIT</span>
+    <nav class="nav-links">
+      <a href="#preview">示例</a>
+      <a href="#install">安装</a>
+      <a href="#triggers">触发</a>
+      <a href="#themes">配色与主题</a>
+      <a href="#params">参数</a>
+      <a href="#practices">最佳实践</a>
+    </nav>
+    <div class="spacer"></div>
+    <span class="meta" id="mode">…</span>
+    <button class="btn" id="theme-btn">◐ 主题</button>
+  </div>
 </header>
 
-<div class="layout">
-  <!-- Left: Step-by-Step Interactive Documentation -->
-  <div class="guide">
+<main class="wrap">
 
-    <!-- 1. Introduction & Live Example -->
-    <section class="step" id="intro">
-      <div class="step-num">01 · 示例</div>
-      <h1>会弯折页面的 Web 光环动效</h1>
-      <p class="lead">
-        当用户点击或聚焦输入框时，一道光环从起点扫过页面并淡出：像玻璃透镜般轻轻弯折内容、带一丝色散，并点亮边框与 SVG 线条。零依赖、不挑框架，<strong>静止时零开销</strong>。
-      </p>
-      <div class="actions">
-        <button class="btn primary" id="hero-trigger">▶ 触发光环</button>
-        <button class="btn" id="hero-reset">收起输入框</button>
-      </div>
-      <p class="lead" style="font-size:12.5px; margin-bottom:0;">
-        💡 试试点击右侧画布底部的 <b>Ask AI</b> 胶囊，或按 <kbd>⌘K</kbd> / <kbd>Ctrl K</kbd> 直接体验完整动效。
-      </p>
-    </section>
+  <!-- 1. Hero & Live Preview -->
+  <section id="preview">
+    <h1>shockwave-halo</h1>
+    <p class="lead">
+      会弯折页面的 Web 光环动效。触发时一道光环扫过内容区域并淡出，像玻璃透镜一样轻轻弯折像素、带一丝色散与边框微光。零依赖、不挑框架，<strong>静止时零开销</strong>。
+    </p>
 
-    <!-- 2. Installation -->
-    <section class="step" id="install">
-      <div class="step-num">02 · 安装</div>
-      <h2>三种引入方式，或直接交给 AI</h2>
-      <p class="lead">支持 npm、CDN 免构建引入、直接复制单文件，或者把指令复制给 Cursor / Claude Code。</p>
-      <div class="seg" id="install-tabs" role="group" aria-label="Install method">
-        <button aria-pressed="true" data-tab="npm">npm</button>
-        <button aria-pressed="false" data-tab="cdn">CDN</button>
-        <button aria-pressed="false" data-tab="ai">Tell your AI</button>
-      </div>
-      <div class="codebox">
-        <div class="codebox-head">
-          <span id="install-label">npm + html-to-image</span>
-          <button class="copy-btn" id="copy-install">复制</button>
-        </div>
-        <pre id="install-code"></pre>
-      </div>
-    </section>
-
-    <!-- 3. Triggers & Origin -->
-    <section class="step" id="triggers">
-      <div class="step-num">03 · 触发与起点</div>
-      <h2>从元素、点击位置或边缘出发</h2>
-      <p class="lead">切换下方起点模式，然后点击右侧预览区或输入框，实时观察光环形状与对应代码。</p>
-      <div class="seg" id="origins" role="group" aria-label="Origin mode"></div>
-      <div class="codebox">
-        <div class="codebox-head">
-          <span>当前触发代码</span>
-          <button class="copy-btn" id="copy-trigger">复制</button>
-        </div>
-        <pre id="trigger-code"></pre>
-      </div>
-    </section>
-
-    <!-- 4. Themes & Palettes -->
-    <section class="step" id="themes">
-      <div class="step-num">04 · 主题与配色</div>
-      <h2>4 套内置配色 + 明暗平滑过渡</h2>
-      <p class="lead">
-        每套配色均针对暗色（明亮饱和）与亮色（柔和通透）分别调校；切换主题时颜色会以 400ms 平滑交叉渐变。点击卡片立即预览：
-      </p>
-      <div class="actions">
-        <button class="btn" id="theme-toggle-inline">◐ 切换亮色 / 暗色主题</button>
-      </div>
-      <div class="pal-grid" id="palettes"></div>
-    </section>
-
-    <!-- 5. Parameters & Layers -->
-    <section class="step" id="params">
-      <div class="step-num">05 · 参数调校</div>
-      <h2>实时调节光环宽度、弯折与效果层</h2>
-      <p class="lead">拖动滑块或开关效果层后，点击“按当前参数触发”即可在右侧画布看到真实变化。</p>
-
-      <div class="ctrl-list">
-        <div class="ctrl">
-          <div class="ctrl-info"><span class="ctrl-name">ringWidth</span><span class="ctrl-desc">单个色环宽度 (px)</span></div>
-          <div class="ctrl-right"><input type="range" id="p-width" min="50" max="200" step="5" value="110"><span class="ctrl-val" id="v-width">110px</span></div>
-        </div>
-        <div class="ctrl">
-          <div class="ctrl-info"><span class="ctrl-name">bendPx</span><span class="ctrl-desc">透镜弯折强度 (px)</span></div>
-          <div class="ctrl-right"><input type="range" id="p-bend" min="0" max="16" step="1" value="7"><span class="ctrl-val" id="v-bend">7px</span></div>
-        </div>
-        <div class="ctrl">
-          <div class="ctrl-info"><span class="ctrl-name">duration</span><span class="ctrl-desc">动画总时长 (ms)</span></div>
-          <div class="ctrl-right"><input type="range" id="p-dur" min="400" max="2000" step="100" value="1000"><span class="ctrl-val" id="v-dur">1000ms</span></div>
-        </div>
-      </div>
-
-      <div class="layer-checks">
-        <label class="chk"><input type="checkbox" id="l-bend" checked> bend（弯折）</label>
-        <label class="chk"><input type="checkbox" id="l-split" checked> split（色散）</label>
-        <label class="chk"><input type="checkbox" id="l-bevel" checked> bevel（边缘折射）</label>
-        <label class="chk"><input type="checkbox" id="l-glints" checked> glints（线条高光）</label>
-        <label class="chk"><input type="checkbox" id="p-reduced"> reducedMotion（减弱动效）</label>
-      </div>
-
-      <div class="actions" style="margin-top:12px;">
-        <button class="btn primary" id="param-trigger">▶ 按当前参数触发</button>
-      </div>
-
-      <div class="codebox">
-        <div class="codebox-head">
-          <span>实时配置代码</span>
-          <button class="copy-btn" id="copy-params">复制</button>
-        </div>
-        <pre id="params-code"></pre>
-      </div>
-    </section>
-
-    <!-- 6. Best Practices -->
-    <section class="step" id="practices">
-      <div class="step-num">06 · 最佳实践</div>
-      <h2>把光环当作“标点符号”，而非日常装饰</h2>
-      <p class="lead">光环带有页面弯折，适合标记值得注意的瞬间，其余时间让界面保持安静。</p>
-      <div class="bp-grid">
-        <div class="bp-card">
-          <h4>✅ 适合使用</h4>
-          <ul>
-            <li>点击 / <code>⌘K</code> 聚焦 AI 或搜索框</li>
-            <li>表单提交、发布、AI 开始回答</li>
-            <li>进入聚焦预览、结账等重要转场</li>
-          </ul>
-        </div>
-        <div class="bp-card">
-          <h4>❌ 建议避免</h4>
-          <ul>
-            <li>鼠标 hover、下拉菜单、Tooltip</li>
-            <li>列表勾选、翻页、高频筛选</li>
-            <li>替代持续加载中的 Loading 动画</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-  </div>
-
-  <!-- Right: Sticky Non-Scrolling Live Preview Stage -->
-  <aside class="stage-wrap">
-    <div class="stage-bar">
-      <span id="stage-hint">实时画布 · 点击底部输入框或直接点击画布触发</span>
-      <span id="stage-status">snapshot 就绪</span>
+    <div class="preview-bar">
+      <button class="btn primary" id="trigger-btn">▶ 触发光环</button>
+      <div class="seg" id="palettes" role="group" aria-label="Palette"></div>
+      <button class="btn" id="motion-btn" aria-pressed="false">Motion: full</button>
     </div>
-    <main class="area" id="area">
-      <div class="content">
-        <div class="head">
+
+    <div class="area" id="area">
+      <div class="stage">
+        <div class="stage-top">
           <div>
-            <h3>Orbit Launch</h3>
-            <p>Q4 release plan · last updated 12 minutes ago</p>
+            <div class="stage-title">Design Note · Halo Study</div>
+            <div class="stage-sub">点击下方 Ask AI 胶囊，或直接点击画布任意位置触发</div>
           </div>
-          <div class="chips">
-            <span class="chip"><span class="dot" style="background:var(--ok)"></span>On track</span>
-            <span class="chip">Q4 2026</span>
-            <span class="chip">12 members</span>
+          <span class="pill-tag">WebGL2 · Snapshot</span>
+        </div>
+        <div class="note-grid">
+          <div class="note-card">
+            <h4>光学透镜弯折</h4>
+            <p>光环经过时将页面内容向外轻轻推开几个像素，边缘保持平直不破边。</p>
+          </div>
+          <div class="note-card">
+            <h4>精准线条高光</h4>
+            <p>只有 1px 边框与标记了 <code>data-halo-line</code> 的线条会泛起微光，文字不误亮。</p>
           </div>
         </div>
-        <div class="stats">
-          <div class="stat"><div class="k">Open tasks</div><div class="v">148</div><div class="d">−12 this week</div></div>
-          <div class="stat"><div class="k">Velocity</div><div class="v">34 pts</div><div class="d">+8%</div></div>
-          <div class="stat"><div class="k">Build health</div><div class="v">98.2%</div><div class="d">+0.4%</div></div>
-          <div class="stat"><div class="k">Ship date</div><div class="v">Dec 9</div><div class="d" style="color:var(--warn)">2 risks</div></div>
-        </div>
-        <div class="cols">
-          <section class="card">
-            <h4>Pipeline <span>6 stages</span></h4>
-            <div class="graph" id="graph">
-              <svg id="wires" data-halo-line preserveAspectRatio="none"></svg>
-              <div class="node" data-x="14" data-y="30">Spec<i>done</i></div>
-              <div class="node" data-x="14" data-y="72">Design<i>done</i></div>
-              <div class="node" data-x="42" data-y="50">Build<i>62%</i></div>
-              <div class="node" data-x="68" data-y="28">QA<i>queued</i></div>
-              <div class="node" data-x="68" data-y="72">Docs<i>40%</i></div>
-              <div class="node" data-x="89" data-y="50">Release</div>
-            </div>
-          </section>
-          <section class="card">
-            <h4>Activity <span>today</span></h4>
-            <div class="list">
-              <div class="row"><span class="avatar" style="background:#4f6bff">MK</span><span class="t"><b>Mara</b> merged payments</span><span class="when">9:41</span></div><hr>
-              <div class="row"><span class="avatar" style="background:#d9468f">JL</span><span class="t"><b>Jun</b> flagged Docs risk</span><span class="when">9:12</span></div><hr>
-              <div class="row"><span class="avatar" style="background:#12a26b">AR</span><span class="t"><b>Ana</b> closed 6 QA</span><span class="when">8:50</span></div><hr>
-              <div class="row"><span class="avatar" style="background:#d98a12">TS</span><span class="t"><b>Theo</b> moved ship date</span><span class="when">8:03</span></div>
-            </div>
-          </section>
+        <div class="wave-box" id="wave-box">
+          <svg id="wires" data-halo-line preserveAspectRatio="none"></svg>
+          <span class="wave-label">SVG 线条遮罩示例（data-halo-line）</span>
         </div>
       </div>
-    </main>
-  </aside>
-</div>
+    </div>
+  </section>
+
+  <!-- 2. Installation -->
+  <section id="install">
+    <h2>安装</h2>
+    <p class="lead">支持 npm、CDN 免构建引入，或直接复制提示词让 AI 帮你接入 / 从零制作。</p>
+    <div class="seg" id="install-tabs" role="group" aria-label="Install method">
+      <button aria-pressed="true" data-tab="npm">npm</button>
+      <button aria-pressed="false" data-tab="cdn">CDN</button>
+      <button aria-pressed="false" data-tab="ai">Tell your AI</button>
+      <button aria-pressed="false" data-tab="scratch">从零开始（纯 Prompt）</button>
+    </div>
+    <div class="codebox">
+      <div class="code-head">
+        <span id="install-label">npm + html-to-image</span>
+        <button class="copy-btn" id="copy-install">复制</button>
+      </div>
+      <pre id="install-code" style="max-height:260px;overflow-y:auto;white-space:pre-wrap;"></pre>
+    </div>
+  </section>
+
+  <!-- 3. Triggers -->
+  <section id="triggers">
+    <h2>触发方式（origin）</h2>
+    <p class="lead">支持从输入框边缘起弧、从点击坐标扩散，或从区域中心/指定边触发。切换后点击上方画布体验：</p>
+    <div class="seg" id="origins" role="group" aria-label="Origin"></div>
+    <div class="codebox">
+      <div class="code-head"><span>触发代码</span><button class="copy-btn" id="copy-trigger">复制</button></div>
+      <pre id="trigger-code"></pre>
+    </div>
+  </section>
+
+  <!-- 4. Themes & Palettes -->
+  <section id="themes">
+    <h2>主题与配色</h2>
+    <p class="lead">
+      内置 <code>Aurora</code>、<code>Halo</code>、<code>Frost</code>、<code>Spark</code> 四套配色。设置 <code>theme: 'auto'</code> 时自动跟随 <code>&lt;html data-theme&gt;</code>、<code>.dark</code> 与系统深浅色，切换时颜色会以 400ms 平滑交叉渐变。
+    </p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn" id="theme-inline">◐ 切换亮色 / 暗色模式</button>
+    </div>
+  </section>
+
+  <!-- 5. Parameters -->
+  <section id="params">
+    <h2>核心参数</h2>
+    <p class="lead">拖动滑块即时调整光环宽度、弯折强度与时长，并点击触发查看效果。</p>
+    <div class="sliders">
+      <div class="s-card">
+        <div class="s-top"><code>ringWidth</code><span id="v-width">110px</span></div>
+        <input type="range" id="p-width" min="50" max="200" step="5" value="110">
+      </div>
+      <div class="s-card">
+        <div class="s-top"><code>bendPx</code><span id="v-bend">7px</span></div>
+        <input type="range" id="p-bend" min="0" max="16" step="1" value="7">
+      </div>
+      <div class="s-card">
+        <div class="s-top"><code>duration</code><span id="v-dur">1000ms</span></div>
+        <input type="range" id="p-dur" min="400" max="2000" step="100" value="1000">
+      </div>
+    </div>
+    <div class="codebox">
+      <div class="code-head">
+        <span>当前配置</span>
+        <button class="copy-btn" id="param-run">▶ 按此配置触发</button>
+      </div>
+      <pre id="params-code"></pre>
+    </div>
+  </section>
+
+  <!-- 6. Best Practices -->
+  <section id="practices">
+    <h2>最佳实践</h2>
+    <p class="lead">把光环当作页面里的“标点符号”，只用来标记值得用户注意的瞬间。</p>
+    <div class="bp-grid">
+      <div class="bp-card">
+        <h4>✅ 适合使用</h4>
+        <ul>
+          <li>点击或 <code>⌘K</code> 唤醒 AI / 搜索框</li>
+          <li>提交表单、发布成功、AI 开始回答</li>
+          <li>进入聚焦预览、结账等重要转场</li>
+        </ul>
+      </div>
+      <div class="bp-card">
+        <h4>❌ 建议避免</h4>
+        <ul>
+          <li>鼠标 hover、下拉菜单、Tooltip</li>
+          <li>列表勾选、翻页、高频筛选</li>
+          <li>替代持续加载中的 Loading 动画</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
 
 <script type="module">
 import { createShockwaveHalo, PALETTES } from '../shockwave-halo.js';
@@ -404,15 +302,54 @@ import { createAIPill } from '../ai-pill.js';
 const $ = s => document.querySelector(s);
 const root = document.documentElement, area = $('#area');
 
-/* 1. Initialize Shockwave Halo & AI Pill */
+/* 1. Initialize */
 const halo = createShockwaveHalo(area, { exclude: '.aip', onEnd: () => updateMode() });
 const pill = createAIPill(area, {
+  bottom: 28,
   onTrigger: ({ opened }) => { if (originMode === 'input') halo.trigger({ origin: pill.el, delay: opened ? 40 : 0 }); },
   onSubmit: text => console.log('ask:', text),
 });
 halo.setOptions({ origin: pill.el });
 
-/* 2. Installation Tabs */
+/* 2. Palettes */
+let currentPalette = 'Aurora';
+const palEl = $('#palettes');
+for (const name of Object.keys(PALETTES)) {
+  const c = PALETTES[name].light;
+  const b = document.createElement('button');
+  b.innerHTML = `<span class="sw" style="background:linear-gradient(90deg,rgb(${c[0]}),rgb(${c[2]}))"></span>${name}`;
+  b.setAttribute('aria-pressed', name === currentPalette);
+  b.onclick = () => {
+    currentPalette = name;
+    halo.setOptions({ palette: name });
+    palEl.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    syncParams();
+    runPreview();
+  };
+  palEl.appendChild(b);
+}
+
+/* 3. Theme Toggle (fix: do NOT trigger mid-transition at 60ms; let syncTheme() re-capture cleanly after CSS transition) */
+if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'dark';
+function toggleTheme() {
+  if (halo.running) halo.stop();
+  root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+}
+$('#theme-btn').onclick = toggleTheme;
+$('#theme-inline').onclick = toggleTheme;
+
+/* 4. Reduced Motion */
+let reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mb = $('#motion-btn');
+const syncMotion = () => {
+  mb.textContent = 'Motion: ' + (reduced ? 'reduced' : 'full');
+  mb.setAttribute('aria-pressed', String(reduced));
+  halo.setOptions({ reducedMotion: reduced });
+};
+mb.onclick = () => { reduced = !reduced; syncMotion(); };
+syncMotion();
+
+/* 5. Install Tabs */
 const INSTALL = {
   npm: {
     label: 'npm + html-to-image',
@@ -535,7 +472,7 @@ $('#install-tabs').addEventListener('click', e => {
 });
 renderInstall('npm');
 
-/* 3. Origin Switcher */
+/* 6. Origins */
 let originMode = 'input';
 const ORIG = {
   input:  { label: 'AI 输入框', code: `const halo = createShockwaveHalo(area, { origin: pill.el, exclude: '.aip' });\npill.onTrigger = ({ opened }) => halo.trigger({ delay: opened ? 40 : 0 });` },
@@ -564,123 +501,60 @@ area.addEventListener('pointerdown', e => {
   else if (originMode === 'center' || originMode === 'bottom') halo.trigger({ origin: originMode });
 });
 
-/* 4. Palettes & Theme */
-let currentPalette = 'Aurora';
-const PAL_DESC = {
-  Aurora: '蓝 → 紫 → 粉 → 暖桃 · 通用首选',
-  Halo:   '橙 → 琥珀 → 金 → 暖白 · 阳光透镜',
-  Frost:  '薄荷 → 水蓝 → 青柠 · 清爽面板',
-  Spark:  '紫罗兰 → 金 → 暖黄 · 灵感高亮',
-};
-const palGrid = $('#palettes');
-for (const name of Object.keys(PALETTES)) {
-  const c = PALETTES[name].light;
-  const card = document.createElement('button');
-  card.className = 'pal-card';
-  card.setAttribute('aria-pressed', name === currentPalette);
-  card.innerHTML = `
-    <div class="pal-bar" style="background:linear-gradient(90deg, rgb(${c[0]}), rgb(${c[1]}), rgb(${c[2]}), rgb(${c[3]}))"></div>
-    <div class="pal-name"><span>${name}</span></div>
-    <div class="pal-desc">${PAL_DESC[name]}</div>`;
-  card.onclick = () => {
-    currentPalette = name;
-    halo.setOptions({ palette: name });
-    palGrid.querySelectorAll('.pal-card').forEach(x => x.setAttribute('aria-pressed', x === card));
-    syncParamsCode();
-    runPreview();
-  };
-  palGrid.appendChild(card);
-}
-
-if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'dark';
-function toggleTheme() {
-  root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
-  setTimeout(runPreview, 60);
-}
-$('#theme-btn').onclick = toggleTheme;
-$('#theme-toggle-inline').onclick = toggleTheme;
-
-/* 5. Live Parameter Tuning */
-function syncParamsCode() {
+/* 7. Parameters */
+function syncParams() {
   const ringWidth = +$('#p-width').value;
   const bendPx = +$('#p-bend').value;
   const duration = +$('#p-dur').value;
-  const layers = {
-    bend: $('#l-bend').checked,
-    split: $('#l-split').checked,
-    bevel: $('#l-bevel').checked,
-    glints: $('#l-glints').checked,
-  };
-  const reducedMotion = $('#p-reduced').checked;
-
   $('#v-width').textContent = ringWidth + 'px';
   $('#v-bend').textContent = bendPx + 'px';
   $('#v-dur').textContent = duration + 'ms';
-
-  halo.setOptions({ ringWidth, bendPx, duration, layers, reducedMotion });
+  halo.setOptions({ ringWidth, bendPx, duration });
   $('#params-code').textContent = `const halo = createShockwaveHalo(area, {
   palette: '${currentPalette}',
   ringWidth: ${ringWidth},
   bendPx: ${bendPx},
   duration: ${duration},
-  reducedMotion: ${reducedMotion ? 'true' : "'auto'"},
-  layers: { bend: ${layers.bend}, split: ${layers.split}, bevel: ${layers.bevel}, glints: ${layers.glints} },
 });`;
 }
-['#p-width', '#p-bend', '#p-dur', '#l-bend', '#l-split', '#l-bevel', '#l-glints', '#p-reduced'].forEach(sel => {
-  $(sel).addEventListener('input', syncParamsCode);
-  $(sel).addEventListener('change', syncParamsCode);
-});
-syncParamsCode();
+['#p-width', '#p-bend', '#p-dur'].forEach(s => $(s).addEventListener('input', syncParams));
+syncParams();
 
 /* Trigger helpers */
 function runPreview() {
-  if (originMode === 'input') {
-    pill.reset();
-    pill.trigger();
-  } else {
-    halo.trigger({ origin: originMode === 'point' ? 'bottom' : originMode });
-  }
+  if (originMode === 'input') { pill.reset(); pill.trigger(); }
+  else halo.trigger({ origin: originMode === 'point' ? 'bottom' : originMode });
 }
-$('#replay-btn').onclick = runPreview;
-$('#hero-trigger').onclick = runPreview;
-$('#param-trigger').onclick = runPreview;
-$('#hero-reset').onclick = () => pill.reset();
+$('#trigger-btn').onclick = runPreview;
+$('#param-run').onclick = runPreview;
 
-/* Copy buttons */
+/* Copy helpers */
 function bindCopy(btnId, preId) {
-  const btn = $(btnId);
-  btn.onclick = () => {
+  const b = $(btnId);
+  b.onclick = () => {
     navigator.clipboard?.writeText($(preId).textContent);
-    const old = btn.textContent;
-    btn.textContent = '已复制 ✓';
-    setTimeout(() => btn.textContent = old, 1200);
+    const old = b.textContent; b.textContent = '已复制 ✓';
+    setTimeout(() => b.textContent = old, 1200);
   };
 }
 bindCopy('#copy-install', '#install-code');
 bindCopy('#copy-trigger', '#trigger-code');
-bindCopy('#copy-params', '#params-code');
 
-/* Pipeline SVG wires (marked data-halo-line so they glint) */
-const graph = $('#graph'), wires = $('#wires');
-function layoutGraph() {
-  const r = graph.getBoundingClientRect();
+/* Draw SVG wave lines for glint demo */
+const waveBox = $('#wave-box'), wires = $('#wires');
+function layoutWires() {
+  const r = waveBox.getBoundingClientRect();
   wires.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
-  const pts = [...graph.querySelectorAll('.node')].map(n => {
-    n.style.left = n.dataset.x + '%'; n.style.top = n.dataset.y + '%';
-    return [n.dataset.x / 100 * r.width, n.dataset.y / 100 * r.height];
-  });
-  wires.innerHTML = [[0,2],[1,2],[2,3],[2,4],[3,5],[4,5]].map(([a, b]) => {
-    const [x1, y1] = pts[a], [x2, y2] = pts[b], mx = (x1 + x2) / 2;
-    return `<path class="wire" d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}"/>`;
-  }).join('');
+  const y = r.height * 0.5;
+  wires.innerHTML = [
+    `M 0 ${y} C ${r.width*0.25} ${y-24}, ${r.width*0.5} ${y+24}, ${r.width} ${y}`,
+    `M 0 ${y+10} C ${r.width*0.35} ${y+30}, ${r.width*0.7} ${y-22}, ${r.width} ${y-6}`
+  ].map(d => `<path class="wave-line" d="${d}"/>`).join('');
 }
-layoutGraph(); addEventListener('resize', layoutGraph);
+layoutWires(); addEventListener('resize', layoutWires);
 
 function updateMode() {
-  const txt = halo.mode + (halo.snapshotMs ? ` · ${halo.snapshotMs}ms` : '');
-  $('#mode').textContent = txt;
-  $('#stage-status').textContent = txt;
+  $('#mode').textContent = halo.mode + (halo.snapshotMs ? ` · ${halo.snapshotMs}ms` : '');
 }
 setInterval(updateMode, 800);
 updateMode();
