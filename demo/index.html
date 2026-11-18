@@ -96,7 +96,7 @@
     display: flex; flex-direction: column; gap: 10px;
   }
   .stage-bar {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 0 4px; font-size: 12px; color: var(--muted);
   }
   .area {
@@ -104,6 +104,7 @@
     background: var(--surface); border: 1px solid var(--line); box-shadow: var(--float-shadow);
     transition: background-color .35s ease, border-color .35s ease, box-shadow .35s ease;
   }
+  .area.point-cursor { cursor: crosshair; }
   .stage-inner {
     position: absolute; inset: 0; padding: 20px 22px 110px;
     display: flex; flex-direction: column; gap: 14px;
@@ -166,29 +167,25 @@
   .pal-card[aria-pressed="true"] .pal-tag { opacity: 1; }
   .pal-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-  /* Dedicated Trigger Preview Box inside #triggers */
-  .trigger-box {
-    position: relative; height: 220px; border-radius: 14px; overflow: hidden; margin-top: 12px;
-    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
-    cursor: crosshair; user-select: none;
-    transition: background-color .35s ease, border-color .35s ease;
+  /* Trigger Type & Direction Controls */
+  .trigger-controls { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+  .dir-panel {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    padding: 10px 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--surface);
+    width: 100%;
   }
-  .trigger-inner {
-    position: absolute; inset: 0; padding: 18px 20px;
-    display: flex; flex-direction: column; justify-content: space-between; pointer-events: none;
+  .dir-label { font-size: 12px; color: var(--muted); margin-right: 4px; }
+  .dir-btn {
+    height: 28px; padding: 0 11px; border-radius: 7px; border: 1px solid var(--line);
+    background: var(--card); color: var(--muted); font: inherit; font-size: 12px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: border-color .15s, background-color .15s, color .15s;
   }
-  .trigger-top { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); }
-  .trigger-mid {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    border: 1px dashed var(--line-strong); border-radius: 10px; padding: 24px 16px;
-    font-size: 13px; color: var(--muted); background: var(--card);
+  .dir-btn:hover { color: var(--text); border-color: var(--line-strong); }
+  .dir-btn[aria-pressed="true"] {
+    background: var(--soft); color: var(--text); border-color: var(--accent); font-weight: 550;
   }
-  .trigger-btn-target {
-    pointer-events: auto; padding: 7px 14px; border-radius: 999px;
-    border: 1px solid var(--line-strong); background: var(--surface); color: var(--text);
-    font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.06);
-  }
+  .trigger-tip { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
 
   /* Code Blocks */
   .codebox { border: 1px solid var(--line); border-radius: 11px; background: var(--code-bg); overflow: hidden; margin-top: 12px; }
@@ -244,7 +241,7 @@
     <nav class="nav-list" id="sidenav-links">
       <a href="#preview" class="active">概览与配色</a>
       <a href="#install">安装与接入</a>
-      <a href="#triggers">触发方式</a>
+      <a href="#triggers">触发方式与方向</a>
       <a href="#params">核心参数</a>
       <a href="#practices">最佳实践</a>
     </nav>
@@ -283,7 +280,7 @@
         <button aria-pressed="false" data-tab="scratch">从零开始（纯 Prompt）</button>
       </div>
       <div class="codebox">
-        <div class="code-head">
+        <div class="codebox-head">
           <span id="install-label">npm + html-to-image</span>
           <button class="copy-btn" id="copy-install">复制</button>
         </div>
@@ -291,30 +288,38 @@
       </div>
     </section>
 
-    <!-- 3. Triggers (with Dedicated Independent Preview Window) -->
+    <!-- 3. Triggers (Unified with Right Persistent Floating Preview Window) -->
     <section id="triggers">
-      <h2>触发方式（origin）</h2>
-      <p class="lead">支持从输入框边缘起弧、从点击坐标扩散，或从区域中心/边缘触发。在下方独立预览窗中直接交互体验：</p>
-      <div class="seg" id="origins" role="group" aria-label="Origin"></div>
+      <h2>触发方式与方向（origin）</h2>
+      <p class="lead">
+        <code>origin</code> 支持 3 类传参：<strong>DOM 元素</strong>、<strong>点击坐标</strong>、以及<strong>预设方向</strong>。所有演示均实时作用于右侧持续悬浮预览窗：
+      </p>
 
-      <div class="trigger-box" id="trigger-area">
-        <div class="trigger-inner">
-          <div class="trigger-top">
-            <span>独立触发预览窗</span>
-            <span id="trigger-hint">点击下方按钮从元素起点触发</span>
-          </div>
-          <div class="trigger-mid">
-            <button type="button" class="trigger-btn-target" id="trigger-target-btn">✦ 点我触发光环</button>
-          </div>
-          <div class="trigger-top" style="font-size:11px; color:var(--faint);">
-            <span>当前模式：<b id="trigger-mode-label" style="color:var(--text);">AI 输入框 / 元素</b></span>
-            <span id="trigger-snap-mode">snapshot</span>
-          </div>
+      <div class="trigger-controls">
+        <div class="seg" id="origin-types" role="group" aria-label="Origin type">
+          <button aria-pressed="true" data-type="element">DOM 元素（默认）</button>
+          <button aria-pressed="false" data-type="point">点击坐标 { x, y }</button>
+          <button aria-pressed="false" data-type="preset">预设方向（5 种）</button>
         </div>
+
+        <!-- Preset Directions grouped together under one parameter type -->
+        <div class="dir-panel" id="dir-panel">
+          <span class="dir-label">点击切换预设方向：</span>
+          <button class="dir-btn" data-dir="bottom" aria-pressed="true">↓ bottom</button>
+          <button class="dir-btn" data-dir="top" aria-pressed="false">↑ top</button>
+          <button class="dir-btn" data-dir="left" aria-pressed="false">→ left</button>
+          <button class="dir-btn" data-dir="right" aria-pressed="false">← right</button>
+          <button class="dir-btn" data-dir="center" aria-pressed="false">◎ center</button>
+        </div>
+
+        <p class="trigger-tip" id="trigger-tip">当前为 DOM 元素模式：以右侧预览窗底部的 Ask AI 胶囊为起点，近边自动起弧。</p>
       </div>
 
       <div class="codebox">
-        <div class="code-head"><span>触发代码</span><button class="copy-btn" id="copy-trigger">复制</button></div>
+        <div class="code-head">
+          <span>触发代码</span>
+          <button class="copy-btn" id="copy-trigger">复制</button>
+        </div>
         <pre id="trigger-code"></pre>
       </div>
     </section>
@@ -372,10 +377,10 @@
 
   </main>
 
-  <!-- Right: Persistent Floating Sticky Studio Preview -->
+  <!-- Right: Single Unified Persistent Floating Preview Window -->
   <aside class="float-stage">
     <div class="stage-bar">
-      <span>持续悬浮预览窗 · 点击底部 Ask AI 触发</span>
+      <span id="stage-bar-hint">持续悬浮预览窗 · 当前起点：DOM 元素 (Ask AI)</span>
       <button class="btn" id="float-trigger" style="height:26px;font-size:11.5px;padding:0 9px;">▶ 触发</button>
     </div>
     <div class="area" id="area">
@@ -420,9 +425,9 @@ import { createShockwaveHalo, PALETTES } from '../shockwave-halo.js';
 import { createAIPill } from '../ai-pill.js';
 
 const $ = s => document.querySelector(s);
-const root = document.documentElement, area = $('#area'), triggerArea = $('#trigger-area');
+const root = document.documentElement, area = $('#area');
 
-/* 1. Initialize Main Floating Preview & Independent Trigger Preview */
+/* 1. Single Unified Floating Preview Window */
 const halo = createShockwaveHalo(area, { exclude: '.aip', onEnd: () => updateMode() });
 const pill = createAIPill(area, {
   bottom: 24,
@@ -430,8 +435,6 @@ const pill = createAIPill(area, {
   onSubmit: text => console.log('ask:', text),
 });
 halo.setOptions({ origin: pill.el });
-
-const triggerHalo = createShockwaveHalo(triggerArea, { onEnd: () => updateMode() });
 
 /* 2. Palettes Showcase */
 let currentPalette = 'Aurora';
@@ -458,7 +461,6 @@ function renderPaletteCards() {
     card.onclick = () => {
       currentPalette = name;
       halo.setOptions({ palette: name });
-      triggerHalo.setOptions({ palette: name });
       renderPaletteCards();
       renderTokenList();
       syncParams();
@@ -479,7 +481,7 @@ function renderTokenList() {
     </div>`).join('');
 }
 
-/* 3. Theme Toggle (safe: stops running halos & lets syncTheme() cleanly capture after CSS transition) */
+/* 3. Theme Toggle */
 if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'dark';
 function syncThemeUI() {
   const isDark = root.dataset.theme === 'dark';
@@ -489,7 +491,6 @@ function syncThemeUI() {
 }
 function toggleTheme() {
   if (halo.running) halo.stop();
-  if (triggerHalo.running) triggerHalo.stop();
   root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
   syncThemeUI();
 }
@@ -503,7 +504,6 @@ const syncMotion = () => {
   mb.textContent = 'Motion: ' + (reduced ? 'reduced' : 'full');
   mb.setAttribute('aria-pressed', String(reduced));
   halo.setOptions({ reducedMotion: reduced });
-  triggerHalo.setOptions({ reducedMotion: reduced });
 };
 mb.onclick = () => { reduced = !reduced; syncMotion(); };
 syncMotion();
@@ -631,45 +631,58 @@ $('#install-tabs').addEventListener('click', e => {
 });
 renderInstall('npm');
 
-/* 6. Origins & Dedicated Independent Trigger Preview */
+/* 6. Unified Origin Types & 5 Preset Directions */
 let originMode = 'element';
-const ORIG = {
-  element: { label: '元素起点', hint: '点击下方按钮从元素位置触发', code: `const halo = createShockwaveHalo(area, { origin: btn });\nbtn.addEventListener('click', () => halo.trigger());` },
-  point:   { label: '点击位置', hint: '点击预览窗内任意位置，从点击坐标扩散', code: `area.addEventListener('pointerdown', e => {\n  halo.trigger({ origin: { x: e.clientX, y: e.clientY } });\n});` },
-  center:  { label: '区域中心', hint: '点击预览窗或按钮，从正中心扩散', code: `halo.trigger({ origin: 'center' });` },
-  bottom:  { label: '底部边缘', hint: '点击预览窗或按钮，从底边升起弧形', code: `halo.trigger({ origin: 'bottom' });` },
-};
-const og = $('#origins');
-for (const [k, item] of Object.entries(ORIG)) {
-  const b = document.createElement('button');
-  b.textContent = item.label;
-  b.setAttribute('aria-pressed', String(k === originMode));
-  b.onclick = () => {
-    originMode = k;
-    og.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    $('#trigger-code').textContent = item.code;
-    $('#trigger-hint').textContent = item.hint;
-    $('#trigger-mode-label').textContent = item.label;
-    if (k === 'center' || k === 'bottom') triggerHalo.trigger({ origin: k });
-    else if (k === 'element') triggerHalo.trigger({ origin: $('#trigger-target-btn') });
-  };
-  og.appendChild(b);
+let presetDir = 'bottom';
+
+function syncOriginUI() {
+  $('#origin-types').querySelectorAll('button[data-type]').forEach(b => {
+    b.setAttribute('aria-pressed', String(b.dataset.type === originMode));
+  });
+  $('#dir-panel').querySelectorAll('button[data-dir]').forEach(b => {
+    b.setAttribute('aria-pressed', String(originMode === 'preset' && b.dataset.dir === presetDir));
+  });
+  area.classList.toggle('point-cursor', originMode === 'point');
+
+  if (originMode === 'element') {
+    $('#trigger-tip').textContent = '当前为 DOM 元素模式：以右侧预览窗底部的 Ask AI 胶囊为起点，近边自动起弧。';
+    $('#stage-bar-hint').textContent = '持续悬浮预览窗 · 当前起点：DOM 元素 (Ask AI)';
+    $('#trigger-code').textContent = `const halo = createShockwaveHalo(area, { origin: pill.el, exclude: '.aip' });\npill.onTrigger = ({ opened }) => halo.trigger({ delay: opened ? 40 : 0 });`;
+  } else if (originMode === 'point') {
+    $('#trigger-tip').textContent = '当前为点击坐标模式：直接点击右侧悬浮预览窗内任意位置，从点击处扩散成圆。';
+    $('#stage-bar-hint').textContent = '持续悬浮预览窗 · 点击画布任意位置触发';
+    $('#trigger-code').textContent = `area.addEventListener('pointerdown', e => {\n  halo.trigger({ origin: { x: e.clientX, y: e.clientY } });\n});`;
+  } else {
+    $('#trigger-tip').textContent = `当前为预设方向模式（'${presetDir}'）：点击上方任意方向按钮即可在右侧预览窗切换方向。`;
+    $('#stage-bar-hint').textContent = `持续悬浮预览窗 · 预设方向：'${presetDir}'`;
+    $('#trigger-code').textContent = `// 预设方向传参：'bottom' | 'top' | 'left' | 'right' | 'center'\nhalo.trigger({ origin: '${presetDir}' });`;
+  }
 }
-$('#trigger-code').textContent = ORIG[originMode].code;
 
-$('#trigger-target-btn').addEventListener('click', e => {
-  e.stopPropagation();
-  if (originMode === 'element') triggerHalo.trigger({ origin: e.currentTarget });
-  else if (originMode === 'point') triggerHalo.trigger({ origin: { x: e.clientX, y: e.clientY } });
-  else triggerHalo.trigger({ origin: originMode });
+$('#origin-types').addEventListener('click', e => {
+  const b = e.target.closest('button[data-type]');
+  if (!b) return;
+  originMode = b.dataset.type;
+  syncOriginUI();
+  runFloatPreview();
 });
 
-triggerArea.addEventListener('pointerdown', e => {
-  if (e.target === $('#trigger-target-btn')) return;
-  if (originMode === 'point') triggerHalo.trigger({ origin: { x: e.clientX, y: e.clientY } });
-  else if (originMode === 'element') triggerHalo.trigger({ origin: $('#trigger-target-btn') });
-  else triggerHalo.trigger({ origin: originMode });
+$('#dir-panel').addEventListener('click', e => {
+  const b = e.target.closest('button[data-dir]');
+  if (!b) return;
+  originMode = 'preset';
+  presetDir = b.dataset.dir;
+  syncOriginUI();
+  halo.trigger({ origin: presetDir });
 });
+
+area.addEventListener('pointerdown', e => {
+  if (pill.el.contains(e.target)) return;
+  if (originMode === 'point') halo.trigger({ origin: { x: e.clientX, y: e.clientY } });
+  else if (originMode === 'preset') halo.trigger({ origin: presetDir });
+});
+
+syncOriginUI();
 
 /* 7. Parameters */
 function syncParams() {
@@ -682,7 +695,6 @@ function syncParams() {
   $('#kpi-width').textContent = ringWidth + ' px';
   $('#kpi-bend').textContent = bendPx + ' px';
   halo.setOptions({ ringWidth, bendPx, duration });
-  triggerHalo.setOptions({ ringWidth, bendPx, duration });
   $('#params-code').textContent = `const halo = createShockwaveHalo(area, {
   palette: '${currentPalette}',
   ringWidth: ${ringWidth},
@@ -693,10 +705,17 @@ function syncParams() {
 ['#p-width', '#p-bend', '#p-dur'].forEach(s => $(s).addEventListener('input', syncParams));
 syncParams();
 
-/* Trigger helpers */
+/* Trigger helper for the single unified floating preview */
 function runFloatPreview() {
-  pill.reset();
-  pill.trigger();
+  if (originMode === 'element') {
+    pill.reset();
+    pill.trigger();
+  } else if (originMode === 'point') {
+    const r = area.getBoundingClientRect();
+    halo.trigger({ origin: { x: r.left + r.width * 0.5, y: r.top + r.height * 0.45 } });
+  } else {
+    halo.trigger({ origin: presetDir });
+  }
 }
 $('#side-trigger').onclick = runFloatPreview;
 $('#float-trigger').onclick = runFloatPreview;
@@ -743,11 +762,10 @@ navLinks.forEach(a => { const sec = $(a.getAttribute('href')); if (sec) obs.obse
 
 function updateMode() {
   $('#mode').textContent = halo.mode + (halo.snapshotMs ? ` · ${halo.snapshotMs}ms` : '');
-  $('#trigger-snap-mode').textContent = triggerHalo.mode + (triggerHalo.snapshotMs ? ` · ${triggerHalo.snapshotMs}ms` : '');
 }
 setInterval(updateMode, 800);
 updateMode();
-window.halo = halo; window.pill = pill; window.triggerHalo = triggerHalo;
+window.halo = halo; window.pill = pill;
 </script>
 </body>
 </html>
