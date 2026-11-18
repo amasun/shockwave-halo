@@ -47,7 +47,8 @@ in vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }`;
 const FS = `#version 300 es
 precision highp float;
 uniform sampler2D uPage, uLines;
-uniform vec2 uRes; uniform float uDpr, uB;
+uniform vec2 uRes; uniform float uDpr;
+uniform vec4 uB;      // snapshot origin of the padding box (border left, top) and snapshot size, CSS px
 uniform vec2 uC; uniform float uR, uS, uW, uPx;
 uniform vec3 uPD[4], uPL[4];
 uniform float uDark, uBend, uSplit, uGlint, uHasTex;
@@ -58,7 +59,7 @@ vec3 ring(float x, vec3 P[4]){
   for (int i = 0; i < 4; i++) { float w = exp(-pow((x - (float(i) - 1.5)) / 0.8, 2.)); acc += P[i] * w; ws += w; }
   return acc / max(ws, 1e-5);
 }
-vec4 page(vec2 q){ q = clamp(q, vec2(0.), uRes); return texture(uPage, (q + uB) / (uRes + 2. * uB)); }
+vec4 page(vec2 q){ q = clamp(q, vec2(0.), uRes); return texture(uPage, (q + uB.xy) / uB.zw); }
 void main(){
   vec2 p = vec2(gl_FragCoord.x, uRes.y * uDpr - gl_FragCoord.y) / uDpr;
   vec2 d = p - uC; float dist = length(d); vec2 dir = d / max(dist, 1e-3);
@@ -114,7 +115,7 @@ void main(){
   o = vec4(clamp(mix(cl, cd, uDark), 0., 1.), 1.) * cover;
 }`;
 
-const UNIFORMS = ['uPage','uLines','uRes','uCanv','uDpr','uB','uC','uR','uS','uW','uPx','uPD','uPL','uDark','uBend','uSplit','uGlint','uHasTex','uBevel'];
+const UNIFORMS = ['uPage','uLines','uRes','uDpr','uB','uC','uR','uS','uW','uPx','uPD','uPL','uDark','uBend','uSplit','uGlint','uHasTex','uBevel'];
 
 function detectDark() {
   const h = document.documentElement;
@@ -264,6 +265,8 @@ export function createShockwaveHalo(area, options = {}) {
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texPage);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, page);
+      // map by the snapshot's real pixel size so texels line up 1:1 with the canvas
+      snap.pw = page.width / r; snap.ph = page.height / r;
       snap.ok = true; snap.mode = 'snapshot';
     })().catch(e => { console.warn('[shockwave-halo] snapshot failed, overlay only:', e); snap.ok = false; snap.mode = 'overlay'; })
       .finally(() => { snap.ms = Math.round(performance.now() - t0); snap.busy = null; if (snap.dirty) invalidate(); });
@@ -368,7 +371,7 @@ export function createShockwaveHalo(area, options = {}) {
 
     if (canvas.width !== Math.round(w * r) || canvas.height !== Math.round(h * r)) resize();
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.uniform2f(U.uRes, w, h); gl.uniform2f(U.uCanv, canvas.width, canvas.height);
+    gl.uniform2f(U.uRes, w, h);
     gl.uniform1f(U.uDpr, r);
     gl.uniform4f(U.uB, area.clientLeft, area.clientTop, snap.pw || area.offsetWidth, snap.ph || area.offsetHeight);
     gl.uniform2f(U.uC, c[0], c[1]); gl.uniform1f(U.uR, R); gl.uniform1f(U.uS, S);
