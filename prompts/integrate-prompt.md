@@ -29,6 +29,7 @@ Wait for my go-ahead, then integrate it:
 - Set `theme` so it follows my dark mode: `'auto'` covers `<html data-theme>`, `.dark` and the system setting; otherwise pass a function.
 - Mark SVG strokes that are lines (graph edges, dividers), but not icons, with `data-halo-line` so they glint.
 - If my content area scrolls, put the halo on a non-scrolling parent frame instead, because a scrolled area falls back to overlay-only.
+- If parts of the area keep updating by themselves (clocks, live counters, streaming text), put them in `exclude`, or set `watch: false` so the halo only takes its snapshot when it is triggered; otherwise it re-snapshots about every half second.
 - Add nothing to the page at rest, and no global CSS beyond what the library injects.
 
 Check, and tell me what you checked:

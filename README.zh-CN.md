@@ -40,7 +40,7 @@
 |---|---|---|
 | [`shockwave-halo.js`](shockwave-halo.js) | 核心光环 | 负责光环动画、透镜弯折、色散与边框高光；拿不到页面截图时自动降级为纯色环叠加，不影响使用 |
 | [`ai-pill.js`](ai-pill.js) | 可选输入框 | 胶囊式 AI 输入框，点开会弹性展开成卡片，边缘带一圈转动的金属高光 |
-| [`demo/index.html`](demo/index.html) | 完整示例 | 展示起点切换、七套配色、明暗主题与减弱动效 |
+| [`index.html`](index.html) | 完整示例 | 展示起点切换、七套配色、明暗主题与减弱动效 |
 
 ---
 ## 让 AI 帮你接入或从零开始
@@ -85,6 +85,7 @@ Wait for my go-ahead, then integrate it:
 - Set `theme` so it follows my dark mode: `'auto'` covers `<html data-theme>`, `.dark` and the system setting; otherwise pass a function.
 - Mark SVG strokes that are lines (graph edges, dividers), but not icons, with `data-halo-line` so they glint.
 - If my content area scrolls, put the halo on a non-scrolling parent frame instead, because a scrolled area falls back to overlay-only.
+- If parts of the area keep updating by themselves (clocks, live counters, streaming text), put them in `exclude`, or set `watch: false` so the halo only takes its snapshot when it is triggered; otherwise it re-snapshots about every half second.
 - Add nothing to the page at rest, and no global CSS beyond what the library injects.
 
 Check, and tell me what you checked:
@@ -206,6 +207,15 @@ These are suggestions from what worked in the demo and what each platform offers
 | **何时触发** | “聚焦时”“点击时”“AI 开始回答时”“运行中忽略新的触发” |
 | **减弱动效** | 自动跟随系统设置：不弯折，只在原地柔和淡入淡出 |
 | **AI 输入框（可选）** | 占位文字、快捷键、模型与模式标签、距底部的距离、颜色 |
+
+---
+
+## 动态内容与性能
+
+- **静止时零开销。** 两次光环之间什么都不运行：没有动画循环，也没有后台工作。
+- **每次光环只截一次图，就在动画开始前。** 如果页面自上次截图后没变，光环立刻用已保存的那张开始；如果变过，先补拍一张再开始（大屏上约 0.1 秒）。1 秒扫过期间发生的变化，要等动画结束后才会体现。
+- **持续更新的内容**（时钟、实时计数、流式输出的文字）会让光环大约每半秒重新截一次图，每次都会让页面短暂停顿。可以用 `exclude` 把这类元素排除在外，或者告诉你的 AI“只在光环触发时才截图”（`watch: false`）。
+- **成本随屏幕尺寸增长。** 2 倍像素密度下的大区域大约占用 35MB 显存。
 
 ---
 

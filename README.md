@@ -40,7 +40,7 @@ Two **zero-dependency**, **framework-agnostic** ES modules (works with React, Vu
 |---|---|---|
 | [`shockwave-halo.js`](shockwave-halo.js) | Core Halo | Drives the halo sweep, lens bend, color split, and border glints; falls back gracefully to color rings only when a snapshot isn't available |
 | [`ai-pill.js`](ai-pill.js) | Optional Input | Pill-shaped AI input that springs open into a card with a turning metal highlight border |
-| [`demo/index.html`](demo/index.html) | Full Demo | Interactive showcase with origin switching, 7 palettes, light/dark mode, and reduced motion |
+| [`index.html`](index.html) | Full Demo | Interactive showcase with origin switching, 7 palettes, light/dark mode, and reduced motion |
 
 ---
 ## Let AI Wire It Up or Build It from Scratch
@@ -85,6 +85,7 @@ Wait for my go-ahead, then integrate it:
 - Set `theme` so it follows my dark mode: `'auto'` covers `<html data-theme>`, `.dark` and the system setting; otherwise pass a function.
 - Mark SVG strokes that are lines (graph edges, dividers), but not icons, with `data-halo-line` so they glint.
 - If my content area scrolls, put the halo on a non-scrolling parent frame instead, because a scrolled area falls back to overlay-only.
+- If parts of the area keep updating by themselves (clocks, live counters, streaming text), put them in `exclude`, or set `watch: false` so the halo only takes its snapshot when it is triggered; otherwise it re-snapshots about every half second.
 - Add nothing to the page at rest, and no global CSS beyond what the library injects.
 
 Check, and tell me what you checked:
@@ -206,6 +207,15 @@ You don't need to memorize option names: tell your AI what you want in plain wor
 | **When it fires** | "on focus", "on click", "when the AI starts answering", "ignore new triggers while one is running" |
 | **Reduced motion** | Follows the system setting automatically: no bend, just a soft fade in place |
 | **AI input (optional)** | Placeholder text, keyboard shortcut, model and mode labels, distance from the bottom, colors |
+
+---
+
+## Live Content & Performance
+
+- **Zero cost at rest.** Nothing runs between halos: no animation loop, no background work.
+- **One snapshot per halo, taken just before it starts.** If the page hasn't changed since the last snapshot, the halo starts at once from the saved one. If it has, a fresh snapshot is taken first and the halo starts right after (about 0.1 s on a large screen). Changes that happen *during* the 1-second sweep appear after it ends.
+- **Content that updates constantly** (clocks, live counters, streaming text) makes the halo re-snapshot about every half second, each time pausing the page briefly. Keep such elements out with `exclude`, or tell your AI to "only snapshot when the halo triggers" (`watch: false`).
+- **Cost grows with screen size.** A large area at 2× pixel density uses about 35 MB of GPU memory.
 
 ---
 

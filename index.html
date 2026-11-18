@@ -1,5 +1,552 @@
-<!doctype html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
-<title>Shockwave Halo</title>
-<meta http-equiv="refresh" content="0; url=demo/">
-<a href="demo/">Open the demo</a>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>shockwave-halo — a halo of light that bends the page</title>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<style>
+  :root {
+    --bg: #eef0f3; --surface: #ffffff; --card: #fafbfc; --soft: #eef0f5;
+    --line: rgb(15 23 42 / 0.09); --line-strong: rgb(15 23 42 / 0.15);
+    --text: #0f172a; --muted: #64748b; --faint: #94a3b8;
+    --accent: #4f6bff; --ok: #12a26b; --warn: #d98a12; --code-bg: #f8f9fc;
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg: #09090b; --surface: #131316; --card: #18181c; --soft: #22232a;
+    --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14);
+    --text: #ececf1; --muted: #8d8d98; --faint: #5f5f69;
+    --accent: #8ea2ff; --ok: #3ccf91; --warn: #f0b048; --code-bg: #101116;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; overflow: hidden;
+  }
+  body, .area, .ws-sidebar, .kpi, .ws-card, .tb-btn, .seg, .seg button, .ws-tag, .ws-nav-item, .switch, .ws-hint {
+    transition: background-color .4s ease, color .4s ease, border-color .4s ease, box-shadow .4s ease;
+  }
+  /* whole-pixel line boxes: live text sits on the device pixel grid, so the page snapshot lines up with it */
+  .area * { line-height: round(1.45em, 1px); }
+  .app { height: 100%; display: flex; flex-direction: column; }
+  button { font: inherit; }
+
+  /* ---------- product toolbar (holds the halo controls as if they were the app's own) ---------- */
+  .toolbar { height: 64px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; min-width: 0; }
+  .logo { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, #4f6bff, #ff6eb4); flex: none; }
+  .crumbs { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 14px; white-space: nowrap; }
+  .crumbs b { color: var(--text); font-weight: 600; }
+  .crumbs .sep { opacity: .45; }
+  .spacer { flex: 1; }
+  .mode { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tb-btn {
+    height: 38px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .tb-btn:hover { border-color: var(--line-strong); }
+  .tb-btn.primary { background: var(--text); color: var(--surface); border-color: transparent; }
+  .tb-btn.primary:hover { opacity: .9; }
+  .tb-btn.icon { width: 38px; font-size: 16px; padding: 0; justify-content: center; }
+  .seg { display: inline-flex; align-items: center; padding: 3px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+  .seg button {
+    border: 0; background: transparent; color: var(--muted); font-size: 14px; height: 32px; padding: 0 12px;
+    border-radius: 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  }
+  .seg button:hover { color: var(--text); }
+  .seg button[aria-pressed="true"] { background: var(--soft); color: var(--text); }
+  .sw { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+  /* palettes: dots only, the chosen one shows its name */
+  #palettes button { padding: 0 9px; }
+  #palettes button .nm { display: none; }
+  #palettes button[aria-pressed="true"] { padding: 0 12px 0 9px; }
+  #palettes button[aria-pressed="true"] .nm { display: inline; }
+  .dir-select { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; height: 32px; cursor: pointer; outline: none; padding: 0 4px; }
+  .seg.dir-on .dir-select { color: var(--text); }
+  .narrow-only { display: none; }
+
+  /* ---------- dashboard area (the halo's target) ---------- */
+  .area {
+    position: relative; flex: 1; min-height: 0; margin: 0 12px 12px; border-radius: 12px; overflow: hidden;
+    background: var(--surface); border: 1px solid var(--line);
+  }
+  .area.point-cursor { cursor: crosshair; }
+  .area .aip { max-width: calc(100% - 28px); }
+  .area .aip-card { width: 100%; }
+  .ws-layout { position: absolute; inset: 0; display: grid; grid-template-columns: 212px minmax(0, 1fr); }
+
+  .ws-sidebar {
+    border-right: 1px solid var(--line); background: var(--card);
+    padding: 14px 10px; display: flex; flex-direction: column; gap: 4px; min-height: 0; overflow: hidden;
+  }
+  .ws-intro { padding: 4px 10px 6px; }
+  .ws-intro h2 { margin: 0 0 4px; font-size: 14px; letter-spacing: -0.01em; }
+  .ws-intro p { margin: 0 0 6px; font-size: 12px; line-height: round(1.5em, 1px); color: var(--muted); }
+  .ws-intro ul { margin: 0; padding-left: 15px; font-size: 11.5px; line-height: round(1.55em, 1px); color: var(--muted); }
+  .ws-label { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); padding: 12px 10px 4px; }
+  .ws-nav-item {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 6px 10px; border-radius: 8px; font-size: 12.5px; color: var(--muted);
+    border: 0; background: transparent; text-align: left;
+  }
+  .ws-nav-item .ic { width: 22px; text-align: center; opacity: .75; flex: none; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.04em; }
+  .ws-nav-item .grow { flex: 1; }
+  .ws-nav-item.active { background: var(--soft); color: var(--text); font-weight: 550; }
+  button.ws-nav-item { cursor: pointer; }
+  button.ws-nav-item:hover { background: var(--soft); color: var(--text); }
+  .ws-badge { font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+
+  /* halo settings, styled like the product's own settings rows */
+  .knob { padding: 5px 10px 6px; }
+  .knob-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+  .knob-top output { color: var(--text); font-variant-numeric: tabular-nums; font-size: 11.5px; }
+  .knob input[type="range"] { width: 100%; margin: 0; height: 16px; accent-color: var(--accent); cursor: pointer; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; font-size: 12px; color: var(--muted); cursor: pointer; }
+  .switch { position: relative; width: 28px; height: 16px; border-radius: 999px; background: var(--line-strong); border: 0; padding: 0; cursor: pointer; flex: none; }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform .2s ease; }
+  .switch[aria-checked="true"] { background: var(--accent); }
+  .switch[aria-checked="true"]::after { transform: translateX(12px); }
+  .reset-btn { margin: 4px 10px 2px; width: calc(100% - 20px); height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 12.5px; cursor: pointer; }
+  .reset-btn:hover { color: var(--text); border-color: var(--line-strong); background: var(--soft); }
+  .m-knobs .reset-btn { grid-column: 1 / -1; }
+  .ws-hint { margin-top: auto; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-size: 11.5px; color: var(--muted); line-height: round(1.45em, 1px); }
+  .ws-hint b { color: var(--text); }
+
+  .stage-inner {
+    padding: 18px 22px 150px; min-width: 0; min-height: 0;
+    display: grid; grid-template-columns: 1.45fr 1fr; grid-template-rows: auto auto 1fr; gap: 14px;
+  }
+  .ws-head { grid-column: 1 / -1; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .ws-head h1 { font-size: 21px; margin: 0; letter-spacing: -0.015em; display: flex; align-items: center; gap: 10px; }
+  .ws-head p { margin: 3px 0 0; color: var(--muted); font-size: 12.5px; }
+  .ws-live { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: var(--ok); padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--ok) 12%, transparent); }
+  .ws-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .ws-tags { display: flex; gap: 6px; }
+  .ws-tag { font-size: 11px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--surface); white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+
+  .kpi-row { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--card); }
+  .kpi-k { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .kpi-delta { font-size: 10.5px; font-weight: 600; color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); padding: 1px 6px; border-radius: 999px; }
+  .kpi-delta.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+  .kpi-v { font-size: 21px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 4px; }
+
+  .ws-card { border: 1px solid var(--line); border-radius: 10px; background: var(--card); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .ws-card-head { padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 600; }
+  .ws-card-head span { font-weight: 400; color: var(--faint); font-size: 11px; }
+  .chart-wrap { position: relative; flex: 1; min-height: 110px; padding: 12px 14px 8px; display: flex; flex-direction: column; }
+  .chart-svg { width: 100%; flex: 1; min-height: 0; overflow: visible; }
+  .chart-grid { stroke: var(--line); stroke-width: 1; }
+  .chart-line { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .chart-line-sub { fill: none; stroke: var(--line-strong); stroke-width: 1.4; stroke-dasharray: 3 3; }
+  .chart-axis { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); padding-top: 6px; font-variant-numeric: tabular-nums; }
+  .insight-list { padding: 4px 14px; display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+  .insight-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 0; font-size: 12px; border-bottom: 1px solid var(--line); }
+  .insight-row:last-child { border-bottom: 0; }
+  .insight-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .insight-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
+  .insight-dot.ok { background: var(--ok); }
+  .insight-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .insight-time { font-size: 11px; color: var(--faint); flex: none; font-variant-numeric: tabular-nums; }
+
+  /* ---------- dialogs (install / config / guide) ----------
+     Native <dialog> + showModal(): the browser puts it in the top layer and centres it against the viewport,
+     so ancestor transforms, zoom or width changes (page-shifting extensions, side panels) cannot move or squash it. */
+  .halo-dlg {
+    width: min(680px, calc(100vw - 40px)); max-width: none; max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px);
+    margin: auto; overflow-y: auto; border-radius: 16px; border: 1px solid var(--line-strong); color: var(--text);
+    background: var(--surface); box-shadow: 0 24px 80px rgb(0 0 0 / 0.35); padding: 18px 20px 20px;
+  }
+  .halo-dlg:not([open]) { display: none; }
+  .halo-dlg[open] { display: flex; flex-direction: column; gap: 14px; animation: halo-dlg-in .18s ease both; }
+  .halo-dlg::backdrop { background: rgb(0 0 0 / 0.42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  @keyframes halo-dlg-in { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .halo-dlg[open] { animation: none; } }
+  .halo-dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .halo-dlg-head h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
+  .halo-dlg-desc { margin: 0; font-size: 13px; color: var(--muted); }
+  .halo-dlg-close { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; font-size: 15px; display: grid; place-items: center; }
+  .halo-dlg-close:hover { color: var(--text); border-color: var(--line-strong); }
+  .halo-dlg .seg { align-self: flex-start; flex-wrap: wrap; }
+  .codebox { border: 1px solid var(--line); border-radius: 11px; background: var(--code-bg); overflow: hidden; }
+  .code-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 13px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .copy-btn { border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 11.5px; padding: 2px 9px; border-radius: 6px; cursor: pointer; }
+  pre { margin: 0; padding: 13px 14px; overflow-x: auto; max-height: 260px; overflow-y: auto; font: 12.5px/20px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  .m-knobs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 10px; border: 1px solid var(--line); border-radius: 11px; padding: 6px 4px; background: var(--card); }
+  .m-knobs .toggle-row { grid-column: 1 / -1; }
+  .m-links { display: flex; gap: 8px; }
+  .bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .bp-card { border: 1px solid var(--line); border-radius: 11px; padding: 12px 14px; background: var(--card); }
+  .bp-card h4 { margin: 0 0 6px; font-size: 13px; }
+  .bp-card ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
+
+  @media (max-width: 1180px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .kpi-row .kpi:nth-child(n+3) { display: none; }
+  }
+  @media (max-width: 960px) {
+    .ws-layout { grid-template-columns: 1fr; }
+    .ws-sidebar { display: none; }
+    .narrow-only { display: inline-flex; }
+    .stage-inner { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; padding: 14px 16px 136px; gap: 10px; }
+    .ws-card.activity-card { display: none; }
+    .ws-tags .ws-tag:not(:first-child) { display: none; }
+    .mode { display: none; }
+  }
+  @media (max-width: 720px) {
+    .toolbar { flex-wrap: wrap; height: auto; padding: 10px 12px; row-gap: 8px; }
+    .crumbs { display: none; }
+    .toolbar .spacer { display: none; }
+    .toolbar > .seg, .toolbar > .tb-btn { flex: none; }
+    .area { margin: 0 8px 8px; }
+    .m-knobs, .bp-grid { grid-template-columns: 1fr; }
+    .ws-head p { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="toolbar">
+    <div class="logo"></div>
+    <div class="crumbs"><span>shockwave-halo</span><span class="sep">/</span><b>Q4 Product Pulse</b></div>
+    <div class="spacer"></div>
+    <span class="mode" id="mode">…</span>
+    <div class="seg" id="palettes" role="group" aria-label="Halo palette"></div>
+    <div class="seg" id="origin-types" role="group" aria-label="Halo origin">
+      <button aria-pressed="true" data-type="element" title="Emit from the AI input">Input</button>
+      <button aria-pressed="false" data-type="point" title="Emit from wherever you click on the dashboard">Click</button>
+      <select class="dir-select" id="dir-select" aria-label="Emit from a page edge" title="Emit from a page edge">
+        <option value="" disabled selected>Edge</option>
+        <option value="bottom">↑ Bottom</option>
+        <option value="top">↓ Top</option>
+        <option value="left">→ Left</option>
+        <option value="right">← Right</option>
+        <option value="center">◎ Center</option>
+      </select>
+    </div>
+    <button class="tb-btn icon narrow-only" id="open-params-narrow" title="Settings" aria-label="Halo settings">⚙</button>
+    <button class="tb-btn icon" id="theme-btn" title="Toggle light / dark" aria-label="Toggle light or dark theme">◐</button>
+    <button class="tb-btn primary" id="run-btn">↻ Replay</button>
+  </header>
+
+  <main class="area" id="area">
+    <div class="ws-layout">
+      <aside class="ws-sidebar">
+        <div class="ws-intro">
+          <h2>Shockwave Halo</h2>
+          <p>A faint halo of light sweeps across the page, bending it a few pixels with a trace of color split.</p>
+          <ul>
+            <li>WebGL2 shader, no framework needed</li>
+            <li>Warps a page snapshot, never covers it</li>
+            <li>Light &amp; dark themes, reduced motion</li>
+          </ul>
+        </div>
+
+        <div class="ws-label">Halo</div>
+        <div class="knobs" data-knobs></div>
+
+        <div class="ws-label">Developers</div>
+        <button class="ws-nav-item" data-open="#halo-dlg-install"><span class="ic">&lt;/&gt;</span><span class="grow">Install &amp; integrate</span></button>
+        <button class="ws-nav-item" data-open="#halo-dlg-params"><span class="ic">{ }</span><span class="grow">Current config</span></button>
+        <button class="ws-nav-item" data-open="#halo-dlg-guide"><span class="ic">✓</span><span class="grow">Best practices</span></button>
+
+        <div class="ws-hint"><b>Try it:</b> press send in the input, or pick another origin in the top bar and click anywhere on the dashboard.</div>
+      </aside>
+
+      <div class="stage-inner">
+        <div class="ws-head">
+          <div>
+            <h1>Q4 Product Pulse <span class="ws-live"><span class="ws-dot"></span>Live</span></h1>
+            <p>Growth sprint · updated 12 minutes ago</p>
+          </div>
+          <div class="ws-tags">
+            <span class="ws-tag" id="pal-tag"><span class="sw" id="pal-tag-dot"></span><span id="pal-tag-name">Aurora</span></span>
+            <span class="ws-tag">Production</span>
+            <span class="ws-tag" id="stage-theme-tag">Light</span>
+          </div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-k">Active Users <span class="kpi-delta">+14.2%</span></div><div class="kpi-v">24,892</div></div>
+          <div class="kpi"><div class="kpi-k">Conversion <span class="kpi-delta">+0.8%</span></div><div class="kpi-v">4.86%</div></div>
+          <div class="kpi"><div class="kpi-k">Avg. Latency <span class="kpi-delta">−18ms</span></div><div class="kpi-v">142 ms</div></div>
+          <div class="kpi"><div class="kpi-k">Ship Date <span class="kpi-delta warn">2 risks</span></div><div class="kpi-v">Dec 9</div></div>
+        </div>
+
+        <div class="ws-card grow">
+          <div class="ws-card-head">Session &amp; Revenue Velocity <span>Last 30 days</span></div>
+          <div class="chart-wrap">
+            <svg class="chart-svg" viewBox="0 0 520 150" preserveAspectRatio="none" data-halo-line>
+              <defs>
+                <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.22"/>
+                  <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line class="chart-grid" x1="0" y1="30" x2="520" y2="30"/>
+              <line class="chart-grid" x1="0" y1="75" x2="520" y2="75"/>
+              <line class="chart-grid" x1="0" y1="120" x2="520" y2="120"/>
+              <path class="chart-line-sub" d="M0 112 C70 105, 110 92, 175 96 C240 100, 290 74, 355 78 C420 82, 470 58, 520 52"/>
+              <path d="M0 104 C65 98, 115 74, 175 78 C235 82, 285 44, 345 50 C405 56, 465 24, 520 18 L520 150 L0 150 Z" fill="url(#chartFill)"/>
+              <path class="chart-line" d="M0 104 C65 98, 115 74, 175 78 C235 82, 285 44, 345 50 C405 56, 465 24, 520 18"/>
+            </svg>
+            <div class="chart-axis"><span>Oct 20</span><span>Oct 27</span><span>Nov 03</span><span>Nov 10</span><span>Nov 17</span></div>
+          </div>
+        </div>
+
+        <div class="ws-card activity-card">
+          <div class="ws-card-head">Recent Insights <span>today</span></div>
+          <div class="insight-list">
+            <div class="insight-row"><div class="insight-left"><span class="insight-dot ok"></span><span class="insight-title">Checkout funnel conversion +11.4%</span></div><span class="insight-time">2m</span></div>
+            <div class="insight-row"><div class="insight-left"><span class="insight-dot"></span><span class="insight-title">Mobile onboarding v2 at 100%</span></div><span class="insight-time">18m</span></div>
+            <div class="insight-row"><div class="insight-left"><span class="insight-dot ok"></span><span class="insight-title">EU-West edge latency stabilized</span></div><span class="insight-time">1h</span></div>
+            <div class="insight-row"><div class="insight-left"><span class="insight-dot"></span><span class="insight-title">Weekly cohort report generated</span></div><span class="insight-time">3h</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- knob template: rendered into the sidebar and into the config dialog, kept in sync -->
+<template id="knob-tpl">
+  <div class="knob"><div class="knob-top"><span>Ring width</span><output data-out="ringWidth"></output></div><input type="range" data-param="ringWidth" min="60" max="180" value="110" aria-label="Ring width (ringWidth)"></div>
+  <div class="knob"><div class="knob-top"><span>Bend strength</span><output data-out="bendPx"></output></div><input type="range" data-param="bendPx" min="0" max="16" value="7" aria-label="Bend strength (bendPx)"></div>
+  <div class="knob"><div class="knob-top"><span>Duration</span><output data-out="duration"></output></div><input type="range" data-param="duration" min="500" max="1800" step="50" value="1000" aria-label="Duration (duration)"></div>
+  <label class="toggle-row"><span>Reduced motion</span><button class="switch" role="switch" aria-checked="false" data-param="reduced" aria-label="Reduced motion"></button></label>
+  <button class="reset-btn" type="button" data-action="reset-params" title="Restore ring width, bend, duration, reduced motion, palette and origin to their defaults">↺ Reset settings</button>
+</template>
+
+  <dialog class="halo-dlg" id="halo-dlg-install" aria-label="Install &amp; integrate">
+    <div class="halo-dlg-head"><h3>Install &amp; integrate</h3><button class="halo-dlg-close" data-close aria-label="Close">×</button></div>
+    <p class="halo-dlg-desc">Use npm or a no-build CDN import, or copy a prompt and let your AI wire it in or build it from scratch.</p>
+    <div class="seg" id="install-tabs" role="group">
+      <button aria-pressed="true" data-tab="npm">npm</button>
+      <button aria-pressed="false" data-tab="cdn">CDN</button>
+      <button aria-pressed="false" data-tab="ai">Tell your AI</button>
+      <button aria-pressed="false" data-tab="scratch">From scratch (prompt only)</button>
+    </div>
+    <div class="codebox">
+      <div class="code-head"><span id="install-label">npm + html-to-image</span><button class="copy-btn" data-copy="#install-code">Copy</button></div>
+      <pre id="install-code"></pre>
+    </div>
+  </dialog>
+
+  <dialog class="halo-dlg" id="halo-dlg-params" aria-label="Current config">
+    <div class="halo-dlg-head"><h3>Current config</h3><button class="halo-dlg-close" data-close aria-label="Close">×</button></div>
+    <p class="halo-dlg-desc">Same settings as the Halo panel in the sidebar: change them in either place and the init code below follows.</p>
+    <div class="m-knobs" data-knobs></div>
+    <div class="codebox">
+      <div class="code-head"><span>Init code</span><button class="copy-btn" data-copy="#params-code">Copy</button></div>
+      <pre id="params-code"></pre>
+    </div>
+    <div class="codebox">
+      <div class="code-head"><span id="trigger-code-label">Trigger code</span><button class="copy-btn" data-copy="#trigger-code">Copy</button></div>
+      <pre id="trigger-code"></pre>
+    </div>
+    <div class="m-links"><button class="tb-btn" data-open="#halo-dlg-install">&lt;/&gt; Install &amp; integrate</button><button class="tb-btn" data-open="#halo-dlg-guide">✓ Best practices</button></div>
+  </dialog>
+
+  <dialog class="halo-dlg" id="halo-dlg-guide" aria-label="Best practices">
+    <div class="halo-dlg-head"><h3>Best practices</h3><button class="halo-dlg-close" data-close aria-label="Close">×</button></div>
+    <p class="halo-dlg-desc">Treat the halo as punctuation: use it only to mark moments worth the user’s attention.</p>
+    <div class="bp-grid">
+      <div class="bp-card"><h4>✅ Good for</h4><ul>
+        <li>Clicking or pressing <code>⌘K</code> to wake an AI / search box</li>
+        <li>Submitting a form, a successful publish, an AI starting to answer</li>
+        <li>Important transitions such as a focused preview or checkout</li>
+      </ul></div>
+      <div class="bp-card"><h4>❌ Avoid for</h4><ul>
+        <li>Mouse hover, dropdown menus, tooltips</li>
+        <li>List checkboxes, pagination, frequent filtering</li>
+        <li>Replacing a loading animation for ongoing work</li>
+      </ul></div>
+    </div>
+  </dialog>
+
+<script type="module">
+import { createShockwaveHalo, PALETTES } from './shockwave-halo.js';
+import { createAIPill } from './ai-pill.js';
+
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const root = document.documentElement, area = $('#area');
+if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'dark';
+
+/* ---------- state ---------- */
+const state = {
+  palette: 'Aurora', origin: 'element', dir: 'bottom',
+  ringWidth: 110, bendPx: 7, duration: 1000,
+  reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
+};
+
+/* ---------- halo + always-open AI input ---------- */
+const halo = createShockwaveHalo(area, { exclude: '.aip', onEnd: () => updateMode() });
+const pill = createAIPill(area, {
+  placeholder: 'Ask AI about Q4 metrics, cohorts, or anomalies…',
+  bottom: 22, alwaysOpen: true,
+  onSubmit: text => { if (text) console.log('ask:', text); halo.trigger({ origin: pill.el }); },
+});
+halo.setOptions({ origin: pill.el });
+
+function runPreview() {
+  if (state.origin === 'element') halo.trigger({ origin: pill.el });
+  else if (state.origin === 'point') {
+    const r = area.getBoundingClientRect();
+    halo.trigger({ origin: { x: r.left + r.width * 0.58, y: r.top + r.height * 0.42 } });
+  } else halo.trigger({ origin: state.dir });
+}
+
+/* ---------- palettes (toolbar dots + tag in the dashboard header) ---------- */
+const palEl = $('#palettes');
+function renderPalettes() {
+  const dark = root.dataset.theme === 'dark';
+  palEl.innerHTML = '';
+  for (const name of Object.keys(PALETTES)) {
+    const c = PALETTES[name][dark ? 'dark' : 'light'];
+    const b = document.createElement('button');
+    b.title = name; b.setAttribute('aria-label', name);
+    b.setAttribute('aria-pressed', String(name === state.palette));
+    b.innerHTML = `<span class="sw" style="background:linear-gradient(135deg,rgb(${c[0]}),rgb(${c[2]}))"></span><span class="nm">${name}</span>`;
+    b.onclick = () => { state.palette = name; halo.setOptions({ palette: name }); renderPalettes(); syncCode(); runPreview(); };
+    palEl.appendChild(b);
+  }
+  const c = PALETTES[state.palette][dark ? 'dark' : 'light'];
+  $('#pal-tag-dot').style.background = `linear-gradient(135deg,rgb(${c[0]}),rgb(${c[2]}))`;
+  $('#pal-tag-name').textContent = state.palette;
+}
+
+/* ---------- theme ---------- */
+function syncTheme() { $('#stage-theme-tag').textContent = root.dataset.theme === 'dark' ? 'Dark' : 'Light'; renderPalettes(); }
+$('#theme-btn').onclick = () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; syncTheme(); };
+syncTheme();
+
+/* ---------- origin (toolbar) ---------- */
+const dirSel = $('#dir-select'), originSeg = $('#origin-types');
+function syncOrigin() {
+  originSeg.querySelectorAll('button[data-type]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.type === state.origin)));
+  originSeg.classList.toggle('dir-on', state.origin === 'preset');
+  if (state.origin !== 'preset') dirSel.selectedIndex = 0;
+  area.classList.toggle('point-cursor', state.origin === 'point');
+  syncCode();
+}
+originSeg.addEventListener('click', e => {
+  const b = e.target.closest('button[data-type]'); if (!b) return;
+  state.origin = b.dataset.type; syncOrigin(); runPreview();
+});
+dirSel.addEventListener('change', () => { state.origin = 'preset'; state.dir = dirSel.value; syncOrigin(); runPreview(); });
+const INTERACTIVE = 'button, input, select, label, a, .aip';
+area.addEventListener('pointerdown', e => {
+  if (e.target.closest(INTERACTIVE)) return;
+  if (state.origin === 'point') halo.trigger({ origin: { x: e.clientX, y: e.clientY } });
+  else if (state.origin === 'preset') halo.trigger({ origin: state.dir });
+});
+$('#run-btn').onclick = runPreview;
+
+/* ---------- halo knobs (sidebar + config dialog, one state) ---------- */
+const tpl = $('#knob-tpl');
+$$('[data-knobs]').forEach(host => host.appendChild(tpl.content.cloneNode(true)));
+const fmt = { ringWidth: v => v + 'px', bendPx: v => v + 'px', duration: v => (v / 1000).toFixed(2).replace(/0$/, '') + 's' };
+function syncKnobs() {
+  for (const k of ['ringWidth', 'bendPx', 'duration']) {
+    $$(`input[data-param="${k}"]`).forEach(i => { if (+i.value !== state[k]) i.value = state[k]; });
+    $$(`output[data-out="${k}"]`).forEach(o => o.textContent = fmt[k](state[k]));
+  }
+  $$('[data-param="reduced"]').forEach(s => s.setAttribute('aria-checked', String(state.reduced)));
+  halo.setOptions({ ringWidth: state.ringWidth, bendPx: state.bendPx, duration: state.duration, reducedMotion: state.reduced });
+  syncCode();
+}
+let previewT = 0;
+document.addEventListener('input', e => {
+  const k = e.target.dataset?.param; if (!k || k === 'reduced') return;
+  state[k] = +e.target.value; syncKnobs();
+});
+// preview once the user lets go of a slider
+document.addEventListener('change', e => {
+  if (!e.target.dataset?.param) return;
+  clearTimeout(previewT); previewT = setTimeout(runPreview, 120);
+});
+document.addEventListener('click', e => {
+  const s = e.target.closest('[data-param="reduced"]'); if (!s) return;
+  e.preventDefault(); state.reduced = !state.reduced; syncKnobs(); runPreview();
+});
+
+/* ---------- one-click reset ---------- */
+const DEFAULTS = { palette: 'Aurora', origin: 'element', dir: 'bottom', ringWidth: 110, bendPx: 7, duration: 1000 };
+document.addEventListener('click', e => {
+  if (!e.target.closest('[data-action="reset-params"]')) return;
+  Object.assign(state, DEFAULTS, { reduced: matchMedia('(prefers-reduced-motion: reduce)').matches });
+  halo.setOptions({ palette: state.palette });
+  renderPalettes(); syncOrigin(); syncKnobs(); runPreview();
+});
+
+/* ---------- code shown in the dialogs ---------- */
+function syncCode() {
+  const opts = [`palette: '${state.palette}'`];
+  if (state.ringWidth !== 110) opts.push(`ringWidth: ${state.ringWidth}`);
+  if (state.bendPx !== 7) opts.push(`bendPx: ${state.bendPx}`);
+  if (state.duration !== 1000) opts.push(`duration: ${state.duration}`);
+  if (state.reduced) opts.push(`reducedMotion: true`);
+  if (state.origin === 'preset') opts.push(`origin: '${state.dir}'`);
+  $('#params-code').textContent = `const halo = createShockwaveHalo(area, {\n  ${opts.join(',\n  ')},\n  exclude: '.aip',\n});`;
+  $('#trigger-code').textContent =
+    state.origin === 'element' ? `// Emit from the AI input\npill.onSubmit = () => halo.trigger({ origin: pill.el });`
+    : state.origin === 'point' ? `// Emit from the click position\narea.addEventListener('pointerdown', e => {\n  halo.trigger({ origin: { x: e.clientX, y: e.clientY } });\n});`
+    : `// Emit from a page edge: 'bottom' | 'top' | 'left' | 'right' | 'center'\nhalo.trigger({ origin: '${state.dir}' });`;
+}
+
+/* ---------- install snippets ---------- */
+const INSTALL = {
+  npm: { label: 'npm + html-to-image', code: `npm i github:amasun/shockwave-halo#v1.0.0 html-to-image\n\nimport { createShockwaveHalo } from 'shockwave-halo';\nimport { toCanvas } from 'html-to-image';\n\nconst halo = createShockwaveHalo(area, {\n  snapshot: (el, opts) => toCanvas(el, opts),\n});` },
+  cdn: { label: 'ES Module CDN (no build)', code: `<script type="module">\n  import { createShockwaveHalo } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/shockwave-halo.js';\n  const halo = createShockwaveHalo(document.querySelector('#area'));\n<\/script>` },
+  ai: { label: 'Use this library (copy to Cursor / Claude Code / Codex)', code: `Add shockwave-halo from https://github.com/amasun/shockwave-halo to my web app:\nmount it on my non-scrolling main content area, exclude the AI input,\nand trigger the Aurora halo when the AI input is focused or clicked.` },
+  scratch: { label: 'Without this repo · plain prompt so your AI builds it from scratch (works anywhere)', code: `Add a shockwave halo to my product: when something triggers it (by default, clicking or focusing the AI input), a faint halo of light sweeps across the page from one place and fades out, bending the page a few pixels as it passes, with a slight color split, in my dark and light modes. Build it inside my code and design system; do not change what the page does or how it looks at rest.
+
+First look at my app. Then ask me about:
+1. Trigger & Retrigger ('restart' | 'ignore')
+2. Origin (AI input, button, edge, or pointer point) & Target Area
+3. Layers (color rings always on; bend, color split, edge glass bevel, line glints)
+4. Palette: Aurora, Halo, Frost, Spark, Ocean, Rose, Silver, or brand colors (tuned for dark & light)` },
+};
+function renderInstall(tab) {
+  $('#install-label').textContent = INSTALL[tab].label;
+  const pre = $('#install-code');
+  pre.style.whiteSpace = tab === 'ai' || tab === 'scratch' ? 'pre-wrap' : 'pre';
+  pre.textContent = INSTALL[tab].code;
+  $('#install-tabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === tab)));
+}
+$('#install-tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) renderInstall(b.dataset.tab); });
+renderInstall('npm');
+
+/* ---------- dialogs ---------- */
+const dialogs = $$('.halo-dlg');
+function openModal(sel) {
+  const d = $(sel);
+  dialogs.forEach(x => { if (x !== d && x.open) x.close(); });
+  if (!d.open) d.showModal();
+}
+$$('[data-open]').forEach(b => b.onclick = () => openModal(b.dataset.open));
+$('#open-params-narrow').onclick = () => openModal('#halo-dlg-params');
+dialogs.forEach(d => d.addEventListener('click', e => {
+  // a click on ::backdrop reports the dialog as its target; tell it from a click on the dialog's own padding by position
+  const r = d.getBoundingClientRect();
+  const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+  if (outside || e.target.closest('[data-close]')) d.close();
+}));   // Escape is handled natively by <dialog>
+$$('[data-copy]').forEach(b => b.onclick = () => {
+  navigator.clipboard?.writeText($(b.dataset.copy).textContent);
+  const old = b.textContent; b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = old, 1200);
+});
+
+/* ---------- status ---------- */
+function updateMode() { $('#mode').textContent = halo.mode + (halo.snapshotMs ? ` · ${halo.snapshotMs}ms` : ''); }
+setInterval(updateMode, 800);
+
+syncOrigin(); syncKnobs(); updateMode();
+window.halo = halo; window.pill = pill;
+</script>
+</body>
+</html>
