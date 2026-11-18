@@ -1,0 +1,21 @@
+{
+  "name": "shockwave-halo",
+  "version": "1.0.0",
+  "description": "A faint halo of light that sweeps across a page, bending it a few pixels with a trace of color split. WebGL2, framework-agnostic, dark & light.",
+  "type": "module",
+  "main": "./shockwave-halo.js",
+  "module": "./shockwave-halo.js",
+  "exports": {
+    ".": "./shockwave-halo.js",
+    "./ai-pill": "./ai-pill.js",
+    "./shockwave-halo.js": "./shockwave-halo.js",
+    "./ai-pill.js": "./ai-pill.js"
+  },
+  "files": ["shockwave-halo.js", "ai-pill.js", "README.md", "LICENSE"],
+  "keywords": ["webgl2", "shader", "halo", "shockwave", "animation", "ai-input", "effect"],
+  "repository": { "type": "git", "url": "git+https://github.com/amasun/shockwave-halo.git" },
+  "homepage": "https://amasun.github.io/shockwave-halo/",
+  "peerDependencies": { "html-to-image": "^1.11.11" },
+  "peerDependenciesMeta": { "html-to-image": { "optional": true } },
+  "license": "MIT"
+}

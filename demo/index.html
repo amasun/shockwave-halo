@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shockwave Halo Demo</title>
+<!-- optional: preload html-to-image as a global; otherwise the component imports it from the CDN on demand -->
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<style>
+  :root {
+    --bg: #eef0f3; --surface: #ffffff; --card: #ffffff; --soft: #f5f6f8;
+    --line: rgb(15 23 42 / 0.10); --line-strong: rgb(15 23 42 / 0.16);
+    --text: #0f172a; --muted: #64748b; --faint: #94a3b8;
+    --accent: #4f6bff; --ok: #12a26b; --warn: #d98a12;
+    --pill: #ffffff;
+    --shadow: 0 0 0 1px rgb(15 23 42 / 0.09), 0 2px 4px rgb(15 23 42 / 0.04), 0 28px 64px -16px rgb(15 23 42 / 0.22);
+    --metal: linear-gradient(120deg, rgb(238 240 243), rgb(196 202 210) 28%, rgb(241 243 245) 50%, rgb(188 195 204) 74%, rgb(233 236 239));
+    --send: #0f172a; --send-fg: #fff;
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg: #09090b; --surface: #131316; --card: #18181c; --soft: #1e1e23;
+    --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14);
+    --text: #ececf1; --muted: #8d8d98; --faint: #5f5f69;
+    --accent: #8ea2ff; --ok: #3ccf91; --warn: #f0b048;
+    --pill: rgb(30 30 33);
+    --shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 2px 4px rgb(0 0 0 / 0.3), 0 28px 64px -16px rgb(0 0 0 / 0.7);
+    --metal: linear-gradient(120deg, rgb(74 79 87), rgb(51 55 61));
+    --send: #ececf1; --send-fg: #111;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; overflow: hidden;
+  }
+  /* theme cross-fade */
+  body, .area, .card, .chip, .node, .row, .tb-btn, .seg, .seg button, .stat, hr, .wire, .avatar {
+    transition: background-color .4s ease, color .4s ease, border-color .4s ease, box-shadow .4s ease, fill .4s, stroke .4s;
+  }
+  .app { height: 100%; display: flex; flex-direction: column; }
+
+  /* toolbar */
+  .toolbar { height: 52px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; }
+  .logo { width: 22px; height: 22px; border-radius: 7px; background: linear-gradient(135deg, #4f6bff, #b26bff); }
+  .crumbs { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 13px; }
+  .crumbs b { color: var(--text); font-weight: 600; }
+  .spacer { flex: 1; }
+  .tb-btn {
+    height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--text); font: inherit; font-size: 12.5px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .tb-btn:hover { border-color: var(--line-strong); }
+  .seg { display: inline-flex; padding: 2px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); }
+  .seg button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; height: 24px; padding: 0 9px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .seg button[aria-pressed="true"] { background: var(--soft); color: var(--text); }
+  .sw { width: 9px; height: 9px; border-radius: 50%; }
+  .mode { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+
+  /* content area */
+  .area {
+    position: relative; flex: 1; margin: 0 12px 12px; border-radius: 12px; overflow: hidden;
+    background: var(--surface); border: 1px solid var(--line);
+  }
+  .content { position: absolute; inset: 0; padding: 28px 32px 140px; display: flex; flex-direction: column; gap: 22px; }
+  .head { display: flex; align-items: flex-end; gap: 16px; }
+  .head h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+  .head p { margin: 4px 0 0; color: var(--muted); }
+  .chips { display: flex; gap: 6px; margin-left: auto; }
+  .chip { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--surface); }
+  .chip .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--card); }
+  .stat .k { font-size: 12px; color: var(--muted); }
+  .stat .v { font-size: 22px; font-weight: 600; margin-top: 4px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .stat .d { font-size: 12px; color: var(--ok); }
+  .cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; flex: 1; min-height: 0; }
+  .card { border: 1px solid var(--line); border-radius: 10px; background: var(--card); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .card h3 { margin: 0; font-size: 13px; font-weight: 600; padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+  .card h3 span { color: var(--faint); font-weight: 400; }
+  .graph { position: relative; flex: 1; min-height: 160px; }
+  .graph svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wire { fill: none; stroke: var(--line-strong); stroke-width: 1.25; }
+  .node { position: absolute; transform: translate(-50%, -50%); padding: 6px 11px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); font-size: 12px; white-space: nowrap; }
+  .node i { font-style: normal; color: var(--faint); margin-left: 6px; }
+  .list { padding: 0 16px; overflow: hidden; }
+  .row { display: flex; gap: 10px; align-items: center; padding: 11px 0; }
+  .avatar { width: 24px; height: 24px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 11px; font-weight: 600; color: #fff; }
+  .row .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .t b { font-weight: 600; }
+  .row .when { color: var(--faint); font-size: 12px; }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .cols { grid-template-columns: 1fr; }
+    .cols .card:last-child, .chips, .crumbs { display: none; }
+    .content { padding: 20px 16px 130px; }
+  }
+  .seg + .seg { margin-left: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="toolbar">
+    <div class="logo"></div>
+    <div class="crumbs">Workspace <span>/</span> <b>Orbit Launch</b></div>
+    <div class="spacer"></div>
+    <span class="mode" id="mode">…</span>
+    <div class="seg" id="origins" role="group" aria-label="Origin"></div>
+    <div class="seg" id="palettes" role="group" aria-label="Halo palette"></div>
+    <button class="tb-btn" id="motion" aria-pressed="false">Motion: full</button>
+    <button class="tb-btn" id="theme">◐ Theme</button>
+    <button class="tb-btn" id="replay">↻ Replay</button>
+  </header>
+
+  <main class="area" id="area">
+    <div class="content">
+      <div class="head">
+        <div>
+          <h1>Orbit Launch</h1>
+          <p>Q4 release plan · last updated 12 minutes ago</p>
+        </div>
+        <div class="chips">
+          <span class="chip"><span class="dot" style="background:var(--ok)"></span>On track</span>
+          <span class="chip">Q4 2026</span>
+          <span class="chip">12 members</span>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">Open tasks</div><div class="v">148</div><div class="d">−12 this week</div></div>
+        <div class="stat"><div class="k">Velocity</div><div class="v">34 pts</div><div class="d">+8%</div></div>
+        <div class="stat"><div class="k">Build health</div><div class="v">98.2%</div><div class="d">+0.4%</div></div>
+        <div class="stat"><div class="k">Ship date</div><div class="v">Dec 9</div><div class="d" style="color:var(--warn)">2 risks</div></div>
+      </div>
+      <div class="cols">
+        <section class="card">
+          <h3>Pipeline <span>6 stages</span></h3>
+          <div class="graph" id="graph">
+            <svg id="wires" data-halo-line preserveAspectRatio="none"></svg>
+            <div class="node" data-x="12" data-y="30">Spec<i>done</i></div>
+            <div class="node" data-x="12" data-y="72">Design<i>done</i></div>
+            <div class="node" data-x="40" data-y="50">Build<i>62%</i></div>
+            <div class="node" data-x="66" data-y="28">QA<i>queued</i></div>
+            <div class="node" data-x="66" data-y="72">Docs<i>40%</i></div>
+            <div class="node" data-x="89" data-y="50">Release</div>
+          </div>
+        </section>
+        <section class="card">
+          <h3>Activity <span>today</span></h3>
+          <div class="list">
+            <div class="row"><span class="avatar" style="background:#4f6bff">MK</span><span class="t"><b>Mara</b> merged the payments refactor</span><span class="when">9:41</span></div><hr>
+            <div class="row"><span class="avatar" style="background:#d9468f">JL</span><span class="t"><b>Jun</b> flagged a risk on Docs</span><span class="when">9:12</span></div><hr>
+            <div class="row"><span class="avatar" style="background:#12a26b">AR</span><span class="t"><b>Ana</b> closed 6 QA tickets</span><span class="when">8:50</span></div><hr>
+            <div class="row"><span class="avatar" style="background:#d98a12">TS</span><span class="t"><b>Theo</b> moved the ship date</span><span class="when">8:03</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import { createShockwaveHalo, PALETTES } from '../shockwave-halo.js';
+import { createAIPill } from '../ai-pill.js';
+
+const $ = s => document.querySelector(s);
+const root = document.documentElement, area = $('#area');
+
+/* the two components */
+const halo = createShockwaveHalo(area, { exclude: '.aip', onEnd: () => setMode() });
+const pill = createAIPill(area, {
+  onTrigger: ({ opened }) => { if (originMode === 'input') halo.trigger({ origin: pill.el, delay: opened ? 40 : 0 }); },
+  onSubmit: text => console.log('ask:', text),
+});
+halo.setOptions({ origin: pill.el });
+
+/* origin switcher: the AI input (default), the point that was clicked, the middle of the area */
+let originMode = 'input';
+const ORIG = { input: 'AI input', point: 'Click point', center: 'Center' };
+const og = $('#origins');
+for (const [k, label] of Object.entries(ORIG)) {
+  const b = document.createElement('button'); b.textContent = label; b.setAttribute('aria-pressed', k === originMode);
+  b.onclick = () => { originMode = k; og.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+  og.appendChild(b);
+}
+area.addEventListener('pointerdown', e => {
+  if (pill.el.contains(e.target)) return;
+  if (originMode === 'point') halo.trigger({ origin: { x: e.clientX, y: e.clientY } });
+  if (originMode === 'center') halo.trigger({ origin: 'center' });
+});
+
+/* palettes */
+const segs = $('#palettes');
+for (const name of Object.keys(PALETTES)) {
+  const b = document.createElement('button'), c = PALETTES[name].light;
+  b.innerHTML = `<span class="sw" style="background:linear-gradient(90deg,rgb(${c[0]}),rgb(${c[2]}))"></span>${name}`;
+  b.setAttribute('aria-pressed', name === 'Aurora');
+  b.onclick = () => { halo.setOptions({ palette: name }); segs.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+  segs.appendChild(b);
+}
+
+/* theme: the component follows <html data-theme> on its own and cross-fades */
+if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'dark';
+$('#theme').onclick = () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; };
+
+/* reduced motion */
+let reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mb = $('#motion');
+const syncMotion = () => { mb.textContent = 'Motion: ' + (reduced ? 'reduced' : 'full'); halo.setOptions({ reducedMotion: reduced }); };
+mb.onclick = () => { reduced = !reduced; syncMotion(); };
+syncMotion();
+
+$('#replay').onclick = () => { pill.reset(); originMode === 'input' ? pill.trigger() : halo.trigger({ origin: originMode === 'center' ? 'center' : pill.el }); };
+
+/* demo graph wires (marked data-halo-line so they glint) */
+const graph = $('#graph'), wires = $('#wires');
+function layoutGraph() {
+  const r = graph.getBoundingClientRect();
+  wires.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
+  const pts = [...graph.querySelectorAll('.node')].map(n => {
+    n.style.left = n.dataset.x + '%'; n.style.top = n.dataset.y + '%';
+    return [n.dataset.x / 100 * r.width, n.dataset.y / 100 * r.height];
+  });
+  wires.innerHTML = [[0,2],[1,2],[2,3],[2,4],[3,5],[4,5]].map(([a, b]) => {
+    const [x1, y1] = pts[a], [x2, y2] = pts[b], mx = (x1 + x2) / 2;
+    return `<path class="wire" d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}"/>`;
+  }).join('');
+}
+layoutGraph(); addEventListener('resize', layoutGraph);
+
+function setMode() { $('#mode').textContent = halo.mode + (halo.snapshotMs ? ` ${halo.snapshotMs}ms` : ''); }
+setInterval(setMode, 1000);
+window.halo = halo; window.pill = pill;
+</script>
+</body>
+</html>
