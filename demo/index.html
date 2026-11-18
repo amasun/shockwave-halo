@@ -654,7 +654,9 @@ These are suggestions from what worked in the demo and what each platform offers
 };
 function renderInstall(tab) {
   $('#install-label').textContent = INSTALL[tab].label;
-  $('#install-code').textContent = INSTALL[tab].code;
+  const pre = $('#install-code');
+  pre.style.whiteSpace = (tab === 'ai' || tab === 'scratch') ? 'pre-wrap' : 'pre';
+  pre.textContent = INSTALL[tab].code;
   $('#install-tabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab));
 }
 $('#install-tabs').addEventListener('click', e => {
