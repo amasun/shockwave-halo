@@ -114,7 +114,7 @@ void main(){
   o = vec4(clamp(mix(cl, cd, uDark), 0., 1.), 1.) * cover;
 }`;
 
-const UNIFORMS = ['uPage','uLines','uRes','uDpr','uB','uC','uR','uS','uW','uPx','uPD','uPL','uDark','uBend','uSplit','uGlint','uHasTex','uBevel'];
+const UNIFORMS = ['uPage','uLines','uRes','uCanv','uDpr','uB','uC','uR','uS','uW','uPx','uPD','uPL','uDark','uBend','uSplit','uGlint','uHasTex','uBevel'];
 
 function detectDark() {
   const h = document.documentElement;
@@ -193,7 +193,7 @@ export function createShockwaveHalo(area, options = {}) {
   const reduced = () => o.reducedMotion === 'auto' ? mqRM.matches : !!o.reducedMotion;
 
   /* ---------- snapshot ---------- */
-  const snap = { ok: false, dirty: true, busy: null, ms: 0, mode: 'none' };
+  const snap = { ok: false, dirty: true, busy: null, ms: 0, mode: 'none', pw: 0, ph: 0 };
   let dirtyTimer = 0, h2i = null;
   async function snapshotFn() {
     if (typeof o.snapshot === 'function') return o.snapshot;
@@ -368,7 +368,9 @@ export function createShockwaveHalo(area, options = {}) {
 
     if (canvas.width !== Math.round(w * r) || canvas.height !== Math.round(h * r)) resize();
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.uniform2f(U.uRes, w, h); gl.uniform1f(U.uDpr, r); gl.uniform1f(U.uB, area.clientLeft);
+    gl.uniform2f(U.uRes, w, h); gl.uniform2f(U.uCanv, canvas.width, canvas.height);
+    gl.uniform1f(U.uDpr, r);
+    gl.uniform4f(U.uB, area.clientLeft, area.clientTop, snap.pw || area.offsetWidth, snap.ph || area.offsetHeight);
     gl.uniform2f(U.uC, c[0], c[1]); gl.uniform1f(U.uR, R); gl.uniform1f(U.uS, S);
     gl.uniform1f(U.uW, o.ringWidth); gl.uniform1f(U.uPx, o.bendPx);
     gl.uniform3fv(U.uPD, toVec(pal.dark)); gl.uniform3fv(U.uPL, toVec(pal.light));
