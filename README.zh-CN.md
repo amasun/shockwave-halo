@@ -6,7 +6,7 @@
 
 **简体中文** · [English](README.md)
 
-[在线 Demo](https://amasun.github.io/shockwave-halo/) · [最佳实践](#最佳实践) · [接入提示词](#接入提示词) · [从零开始](#从零开始)
+[在线 Demo](https://amasun.github.io/shockwave-halo/) · [AI 接入](#让-ai-帮你接入或从零开始) · [可调整的内容](#可调整的内容) · [最佳实践](#最佳实践)
 
 <p>
   <img src="https://img.shields.io/badge/WebGL2-GLSL_ES_3.00-4f6bff?style=flat-square&logo=webgl&logoColor=white" alt="WebGL2" />
@@ -43,226 +43,6 @@
 | [`demo/index.html`](demo/index.html) | 完整示例 | 展示起点切换、七套配色、明暗主题与减弱动效 |
 
 ---
-
-## 安装
-
-三种方式任选其一，也可以直接把下方指令发给你的 AI 编码助手。
-
-### 1. npm（从 GitHub 安装）
-
-```bash
-npm i github:amasun/shockwave-halo#v1.0.0 html-to-image
-```
-
-```js
-import { createShockwaveHalo } from 'shockwave-halo';
-import { createAIPill } from 'shockwave-halo/ai-pill';   // 可选
-import { toCanvas } from 'html-to-image';
-
-const halo = createShockwaveHalo(area, {
-  snapshot: (el, opts) => toCanvas(el, opts),
-});
-```
-
-### 2. CDN（无需构建工具）
-
-```html
-<script type="module">
-  import { createShockwaveHalo } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/shockwave-halo.js';
-  import { createAIPill } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/ai-pill.js'; // 可选
-</script>
-```
-
-### 3. 直接复制文件
-
-把 [`shockwave-halo.js`](shockwave-halo.js)（以及可选的 [`ai-pill.js`](ai-pill.js)）直接放进你的项目目录即可，无任何外部依赖。
-
-> [!NOTE]
-> **一句话让 AI 帮你装好**：如果你正在用 Cursor / Claude Code / Codex，可以直接对它说：  
-> *“参考 https://github.com/amasun/shockwave-halo 帮我接入 shockwave-halo：挂载在主内容容器上，点击或聚焦 AI 输入框时触发 `Aurora` 光环，保持工具栏不被遮挡。”*  
-> 需要更精细的引导？请看下文 [让 AI 帮你接入或从零开始](#让-ai-帮你接入或从零开始)。
-
----
-
-## 快速上手
-
-### 最小用法（3 步跑起来）
-
-```js
-import { createShockwaveHalo } from './shockwave-halo.js';
-
-const area = document.querySelector('#content');   // 光环扫过的区域（把工具栏放在这个区域外面）
-const input = document.querySelector('#ai-input');
-
-const halo = createShockwaveHalo(area, { origin: input });
-input.addEventListener('focus', () => halo.trigger());
-```
-
-> [!NOTE]
-> 要让光环弯折页面，需要 `html-to-image` 拍摄页面快照：可以在页面中通过 `<script>` 提前引入（全局变量 `htmlToImage`），也可以什么都不做——组件会在需要时自动从 jsDelivr 加载 `html-to-image@1.11.11`。使用 Vite / Webpack 等打包工具时，建议如上方 npm 示例通过 `snapshot` 选项显式传入。
-
-### 搭配胶囊输入框
-
-```js
-import { createShockwaveHalo } from './shockwave-halo.js';
-import { createAIPill } from './ai-pill.js';
-
-const halo = createShockwaveHalo(area, { exclude: '.aip' });   // 输入框自己会动，拍快照时排除它
-const pill = createAIPill(area, {
-  onTrigger: ({ delay }) => halo.trigger({ origin: pill.el, delay }),
-  onSubmit: text => sendToAI(text),
-});
-```
-
-### 在 React / Vue / Svelte 中使用
-
-```jsx
-function useShockwaveHalo(ref, options) {
-  const halo = useRef(null);
-  useEffect(() => {
-    halo.current = createShockwaveHalo(ref.current, options);
-    return () => halo.current.destroy();
-  }, []);
-  return halo;
-}
-
-const area = useRef(null);
-const halo = useShockwaveHalo(area, { exclude: '.ai-input' });
-
-<main ref={area}>
-  …
-  <input className="ai-input" onFocus={() => halo.current.trigger()} />
-</main>
-```
-
-Vue、Svelte 用法相同：挂载时创建，卸载时调用 `destroy()`。
-
-### 本地运行 Demo
-
-```bash
-git clone https://github.com/amasun/shockwave-halo.git
-cd shockwave-halo
-python3 -m http.server 8788
-```
-
-然后打开 `http://localhost:8788/demo/`（浏览器禁止通过 `file://` 加载 ES 模块，需启动本地静态服务）。
-
----
-
-## 触发方式与内置配色
-
-### 1. 起点（`origin`）
-
-| 传入方式 | 扩散形态 | 常见用法 |
-|---|---|---|
-| **DOM 元素**（如 `input`） | 靠近容器边缘时，从该边升起一道宽弧；靠近内部时，从元素中心扩散成圆 | `origin: inputEl`（默认随输入位置自适应） |
-| **视口坐标** `{ x, y }` | 以点击/触发点为圆心向外扩散 | `halo.trigger({ origin: { x: e.clientX, y: e.clientY } })` |
-| **预设位置** | `'bottom'` / `'top'` / `'left'` / `'right'` 从对应边起弧；`'center'` 从正中心扩散 | `origin: 'bottom'`（默认） |
-
-### 2. 七套内置配色（`palette`）
-
-每套配色均针对**暗色**（更明亮饱和）与**亮色**（更柔和通透）分别调校，四圈颜色由内到外平滑混合：
-
-| 配色名 | 色系走向（由内到外） | 适用气质 |
-|---|---|---|
-| **`Aurora`**（默认） | 蓝 → 紫 → 粉 → 暖桃 | 通用 AI 助手、现代产品界面 |
-| **`Halo`** | 橙 → 琥珀 → 金 → 暖白 | 低角度阳光质感、温暖品牌基调 |
-| **`Frost`** | 薄荷绿 → 水蓝 → 青柠 → 冰白 | 清爽数据面板、冷静工具类产品 |
-| **`Spark`** | 紫罗兰 → 淡紫 → 金 → 暖黄 | 创作、灵感触发、高亮强调 |
-| **`Ocean`** | 深海蓝 → 天青 → 冰蓝 → 透白 | 科技看板、海洋/极简蓝调、专业工作台 |
-| **`Rose`** | 玫瑰红 → 绯粉 → 珊瑚橘 → 柔粉 | 设计工具、情感化反馈、生活/消费级产品 |
-| **`Silver`** | 钢蓝灰 → 银灰 → 浅铂银 → 极光白 | 极简黑白灰界面、高级硬件感、低调点缀 |
-
-也支持传入自定义配色对象：`{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }`。
-
----
-
-## 最佳实践
-
-> **把光环当作页面里的“标点符号”，而不是日常装饰。** 它带有空间弯折与色散，视觉存在感较强，只适合用来标记**值得用户注意的瞬间**，其余时间让界面保持安静。
-
-| ✅ 适合使用 | ❌ 建议避免 |
-|---|---|
-| **唤醒 AI / 搜索框**：点击或通过 `⌘K` 聚焦输入框时 | **高频微交互**：鼠标 hover、普通下拉菜单、Tooltip |
-| **状态确认与里程碑**：提交表单、发布成功、AI 开始/完成回答 | **列表常规操作**：勾选待办、翻页、筛选排序、增删行 |
-| **聚焦模式切换**：进入演示、结账、全屏预览等重要转场 | **替代 Loading**：光环只运行 1 秒，不适合充当持续加载指示器 |
-
----
-
-## API 参考
-
-### `createShockwaveHalo(area, options)`
-
-`area` 是光环作用的容器。光环会被裁剪在容器范围内，并自动沿用它的圆角（记得给容器加上 `overflow: hidden`）。
-
-<details>
-<summary><strong>展开查看全部配置项（options）</strong></summary>
-
-| 选项 | 默认值 | 说明 |
-|---|---|---|
-| `origin` | `'bottom'` | 光环起点：DOM 元素、`{x, y}`（视口坐标），或 `'bottom' \| 'top' \| 'left' \| 'right' \| 'center'` |
-| `palette` | `'Aurora'` | `'Aurora' \| 'Halo' \| 'Frost' \| 'Spark' \| 'Ocean' \| 'Rose' \| 'Silver'`，或自定义 `{ dark: [[r,g,b]×4], light: [[r,g,b]×4] }` |
-| `theme` | `'auto'` | `'auto'` 自动跟随 `<html data-theme>` / `.dark` / 系统深浅色；也可传 `'light'`、`'dark'` 或返回其一的函数。切换主题时颜色平滑过渡 |
-| `layers` | 全开 | `{ bend, split, bevel, glints }`：页面弯折、色散、边缘玻璃折射、线条高光（彩色光环始终开启） |
-| `bevelEdges` | `['left','right','bottom']` | 哪些边作为玻璃边缘参与折射（贴着工具栏的那条边不要放进来） |
-| `duration` | `1000` | 动画总时长（毫秒） |
-| `ringWidth` | `110` | 单个色环宽度 `w`（像素） |
-| `bendPx` | `7` | 透镜弯折强度（像素） |
-| `arcDepth` | 边长的 ⅔ | 从边缘出发时，圆心离该边缘的距离 |
-| `retrigger` | `'restart'` | 动画还没结束时再次触发：`'restart'` 重新开始，`'ignore'` 忽略 |
-| `reducedMotion` | `'auto'` | 系统开启“减弱动态效果”时：关闭弯折、色散与闪线，光环以一半强度原地淡入淡出（`600ms`） |
-| `exclude` | `null` | CSS 选择器：拍快照时跳过哪些元素（例如会动的输入框，或盖在光环上方的元素） |
-| `svgLines` | `'[data-halo-line]'` | 哪些 SVG 线条参与高光闪烁。默认只亮带这个属性的线条，图标不会误亮 |
-| `snapshot` | `'auto'` | `'auto'`（自动用 `html-to-image`）、`false`（只要彩色光环，不弯折页面），或自定义 `async (el, opts) => canvas` |
-| `watch` | `true` | 区域内容发生变化后，在浏览器空闲时自动更新快照 |
-| `maxDpr` | `2` | 最高渲染清晰度（像素比上限） |
-| `zIndex` | `5` | 光环画布层级。想让输入框等元素盖在光环上面，给它设更高的 `z-index` 即可 |
-| `onStart` / `onEnd` | — | 动画开始 / 结束时的回调 |
-
-</details>
-
-#### 返回的实例方法
-
-```js
-halo.trigger({ origin?, delay? })  // 触发光环，返回 Promise<boolean>
-halo.stop()                        // 立刻停止动画
-halo.invalidate()                  // 告诉组件页面变了，空闲时重拍快照（开启 watch 时通常不用手动调）
-halo.capture()                     // 立刻拍一次快照，返回 { ok, mode, ms }
-halo.setOptions({ palette: 'Frost', layers: { split: false } })
-halo.running                       // 当前是否正在播放
-halo.mode                          // 'snapshot' | 'overlay' | 'overlay (scrolled)' | 'overlay (no WebGL2)'
-halo.destroy()                     // 销毁组件并移除监听
-halo.debugHold(0.2)                // 调试用：把动画定格在 t=0.2；传 null 恢复播放
-```
-
-### `createAIPill(container, options)`
-
-| 选项 | 默认值 | 说明 |
-|---|---|---|
-| `placeholder` | `'Ask AI about this project'` | 输入框提示文字 |
-| `shortcut` | `'k'` | 快捷键（`⌘K` / `Ctrl K`），传 `null` 关闭 |
-| `model` / `mode` | `'Opus 5.5'` / `'Ask'` | 两个下拉按钮上显示的文字 |
-| `bottom` | `48` | 距离容器底部的像素高度 |
-| `ignoreOutside` | `null` | 选择器：点击容器外匹配的元素（如工具栏）时不收起输入框 |
-| `onTrigger({ opened, reduced, delay })` | — | 点击或聚焦胶囊、按快捷键、在已打开输入框内点击时触发 |
-| `onSubmit(text)` / `onOpen` / `onClose` | — | 提交文本与展开/收起回调 |
-
-- **返回实例**：`{ el, input, open(), close(), trigger(), reset(), isOpen, destroy() }`
-- **自定义配色**：可通过 CSS 变量覆盖颜色：`--aip-bg`、`--aip-text`、`--aip-muted`、`--aip-faint`、`--aip-line`、`--aip-accent`、`--aip-send`、`--aip-send-fg`、`--aip-shadow`。祖先元素带有 `[data-theme="dark"]` 或 `.dark` 时会自动切换成暗色外观。
-
----
-
-## 原理与优雅降级
-
-- **静止时零开销**：不触发时画布完全隐藏，不跑 `requestAnimationFrame`。仅在页面内容变动后的浏览器空闲时间拍一次快照（主线程约 `60–200ms`）。
-- **单 Pass 渲染与精准高光**：触发时复用缓存快照，运行 1 秒全屏片元着色器，光环带外像素完全透明；同时根据 DOM 边框位置与宽度单独绘制“黑底白线”遮罩，确保 `1px` 边框只亮 `1px`，文字与图标不误亮。
-- **跨浏览器兼容与优雅降级**：
-  - 默认通过 `html-to-image` 克隆 DOM 获取快照（未来也可通过自定义 `snapshot` 无缝接入 `HTML-in-Canvas` 等新特性）。
-  - 遇到以下情况会自动降级为**仅叠加彩色光环**（不弯折页面），功能与交互完全不受影响：浏览器不支持 WebGL2、跨域图片/字体未内联、或作用区域/子元素存在滚动偏移（建议将光环挂载在不会滚动的外层框架上）。
-  - 动画运行的 1 秒内，光环带内的画面取自触发瞬间的快照（带外区域实时显示，不受影响）。
-
----
-
 ## 让 AI 帮你接入或从零开始
 
 不用自己研究代码或看懂参数。你可以直接抄下面任意一句发给 **Claude Code / Codex / Cursor**，或者展开下方完整提示词整段复制给 AI，它会一步步确认你的需求并完成改造。
@@ -282,7 +62,7 @@ halo.debugHold(0.2)                // 调试用：把动画定格在 t=0.2；传
 ```text
 Add the shockwave halo from https://github.com/amasun/shockwave-halo to my web app: when the AI input is clicked or focused, a faint halo of light sweeps across the page's content area from the input and fades out, bending the page a few pixels as it passes. Use the library as it is; do not copy its shader into my code. Do not change what the page does or how it looks at rest.
 
-First read the library's README (https://github.com/amasun/shockwave-halo#readme) for the full API. Then look at my app and tell me, in a short list:
+First read the library's README (https://github.com/amasun/shockwave-halo#readme), then the commented option lists at the top of https://github.com/amasun/shockwave-halo/blob/main/shockwave-halo.js (`DEFAULTS`) and https://github.com/amasun/shockwave-halo/blob/main/ai-pill.js (the `o = {...}` block) for every option and its default. Then look at my app and tell me, in a short list:
 - the AI input (or whatever should trigger the halo), and what opens or focuses it;
 - the content area the halo should cover: a non-scrolling element that holds the page under the toolbars, its corner radius, and whether it has `overflow: hidden`;
 - any toolbars, and which edges of that area sit under one;
@@ -408,3 +188,104 @@ These are suggestions from what worked in the demo and what each platform offers
 ```
 
 </details>
+
+---
+
+## 可调整的内容
+
+不用记参数名：用大白话告诉你的 AI 想要什么，它会帮你对应到具体设置。可以调整的内容如下。
+
+| 调什么 | 你可以这样说 |
+|---|---|
+| **从哪里发出** | “从 AI 输入框发出”“从用户点击的位置发出”“从底边升起”“从中心扩散” |
+| **配色** | “用 Frost 配色”“换成我们的品牌蓝”：七套内置配色（Aurora、Halo、Frost、Spark、Ocean、Rose、Silver），或自定义一组四色 |
+| **亮 / 暗主题** | 自动跟随站点的暗色模式，切换时平滑过渡 |
+| **效果图层** | “不要色散”“去掉玻璃边缘”“只留光环，不要弯折页面”：页面弯折、色散、玻璃边缘、线条高光都可以单独关闭 |
+| **强度与速度** | “弱一点”“光环再宽一点”“稍微快一点”：光环宽度、弯折强度、时长 |
+| **作用范围** | “别盖到工具栏”“输入框要在光环之上”：选择作用区域、排除元素、指定哪些边缘作为玻璃边 |
+| **何时触发** | “聚焦时”“点击时”“AI 开始回答时”“运行中忽略新的触发” |
+| **减弱动效** | 自动跟随系统设置：不弯折，只在原地柔和淡入淡出 |
+| **AI 输入框（可选）** | 占位文字、快捷键、模型与模式标签、距底部的距离、颜色 |
+
+---
+
+## 最佳实践
+
+> **把光环当作页面里的“标点符号”，而不是日常装饰。** 它带有空间弯折与色散，视觉存在感较强，只适合用来标记**值得用户注意的瞬间**，其余时间让界面保持安静。
+
+| ✅ 适合使用 | ❌ 建议避免 |
+|---|---|
+| **唤醒 AI / 搜索框**：点击或通过 `⌘K` 聚焦输入框时 | **高频微交互**：鼠标 hover、普通下拉菜单、Tooltip |
+| **状态确认与里程碑**：提交表单、发布成功、AI 开始/完成回答 | **列表常规操作**：勾选待办、翻页、筛选排序、增删行 |
+| **聚焦模式切换**：进入演示、结账、全屏预览等重要转场 | **替代 Loading**：光环只运行 1 秒，不适合充当持续加载指示器 |
+
+---
+
+## 安装
+
+三种方式任选其一，也可以直接把下方指令发给你的 AI 编码助手。
+
+### 1. npm（从 GitHub 安装）
+
+```bash
+npm i github:amasun/shockwave-halo#v1.0.0 html-to-image
+```
+
+```js
+import { createShockwaveHalo } from 'shockwave-halo';
+import { createAIPill } from 'shockwave-halo/ai-pill';   // 可选
+import { toCanvas } from 'html-to-image';
+
+const halo = createShockwaveHalo(area, {
+  snapshot: (el, opts) => toCanvas(el, opts),
+});
+```
+
+### 2. CDN（无需构建工具）
+
+```html
+<script type="module">
+  import { createShockwaveHalo } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/shockwave-halo.js';
+  import { createAIPill } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/ai-pill.js'; // 可选
+</script>
+```
+
+### 3. 直接复制文件
+
+把 [`shockwave-halo.js`](shockwave-halo.js)（以及可选的 [`ai-pill.js`](ai-pill.js)）直接放进你的项目目录即可，无任何外部依赖。
+
+> [!NOTE]
+> **一句话让 AI 帮你装好**：如果你正在用 Cursor / Claude Code / Codex，可以直接对它说：  
+> *“参考 https://github.com/amasun/shockwave-halo 帮我接入 shockwave-halo：挂载在主内容容器上，点击或聚焦 AI 输入框时触发 `Aurora` 光环，保持工具栏不被遮挡。”*  
+> 需要更精细的引导？请看下文 [让 AI 帮你接入或从零开始](#让-ai-帮你接入或从零开始)。
+
+---
+## 快速上手
+
+### 最小用法（3 步跑起来）
+
+```js
+import { createShockwaveHalo } from './shockwave-halo.js';
+
+const area = document.querySelector('#content');   // 光环扫过的区域（把工具栏放在这个区域外面）
+const input = document.querySelector('#ai-input');
+
+const halo = createShockwaveHalo(area, { origin: input });
+input.addEventListener('focus', () => halo.trigger());
+```
+
+> [!NOTE]
+> 要让光环弯折页面，需要 `html-to-image` 拍摄页面快照：可以在页面中通过 `<script>` 提前引入（全局变量 `htmlToImage`），也可以什么都不做——组件会在需要时自动从 jsDelivr 加载 `html-to-image@1.11.11`。使用 Vite / Webpack 等打包工具时，建议如上方 npm 示例通过 `snapshot` 选项显式传入。
+
+### 搭配胶囊输入框
+
+```js
+import { createShockwaveHalo } from './shockwave-halo.js';
+import { createAIPill } from './ai-pill.js';
+
+const halo = createShockwaveHalo(area, { exclude: '.aip' });   // 输入框自己会动，拍快照时排除它
+const pill = createAIPill(area, {
+  onTrigger: ({ delay }) => halo.trigger({ origin: pill.el, delay }),
+  onSubmit: text => sendToAI(text),
+});
+```

@@ -155,29 +155,25 @@
   .insight-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .insight-time { font-size: 11px; color: var(--faint); flex: none; font-variant-numeric: tabular-nums; }
 
-  /* ---------- modals (install / config / guide) ---------- */
-  /* The dialog is positioned on its own (fixed + translate), so centring never depends on how a grid/flex parent sizes its rows. */
-  .modal-backdrop {
-    position: fixed; inset: 0; z-index: 100; background: rgb(0 0 0 / 0.42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-    visibility: hidden; pointer-events: none;
+  /* ---------- dialogs (install / config / guide) ----------
+     Native <dialog> + showModal(): the browser puts it in the top layer and centres it against the viewport,
+     so ancestor transforms, zoom or width changes (page-shifting extensions, side panels) cannot move or squash it. */
+  .halo-dlg {
+    width: min(680px, calc(100vw - 40px)); max-width: none; max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px);
+    margin: auto; overflow-y: auto; border-radius: 16px; border: 1px solid var(--line-strong); color: var(--text);
+    background: var(--surface); box-shadow: 0 24px 80px rgb(0 0 0 / 0.35); padding: 18px 20px 20px;
   }
-  .modal-backdrop.open { visibility: visible; pointer-events: auto; }
-  /* fade only the dialog, and only its opacity: a transform animation would fight the centring transform */
-  @keyframes modal-in { from { opacity: 0; } to { opacity: 1; } }
-  .modal {
-    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    width: 680px; width: min(680px, calc(100vw - 40px));
-    max-height: calc(100vh - 40px); overflow-y: auto; border-radius: 16px; border: 1px solid var(--line-strong);
-    background: var(--surface); box-shadow: 0 24px 80px rgb(0 0 0 / 0.35); padding: 18px 20px 20px; display: none; flex-direction: column; gap: 14px;
-  }
-  .modal.active { display: flex; animation: modal-in .18s ease both; }
-  @media (prefers-reduced-motion: reduce) { .modal.active { animation: none; } }
-  .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .modal-head h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
-  .modal-desc { margin: 0; font-size: 13px; color: var(--muted); }
-  .modal-close { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; font-size: 15px; display: grid; place-items: center; }
-  .modal-close:hover { color: var(--text); border-color: var(--line-strong); }
-  .modal .seg { align-self: flex-start; flex-wrap: wrap; }
+  .halo-dlg:not([open]) { display: none; }
+  .halo-dlg[open] { display: flex; flex-direction: column; gap: 14px; animation: halo-dlg-in .18s ease both; }
+  .halo-dlg::backdrop { background: rgb(0 0 0 / 0.42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  @keyframes halo-dlg-in { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .halo-dlg[open] { animation: none; } }
+  .halo-dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .halo-dlg-head h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
+  .halo-dlg-desc { margin: 0; font-size: 13px; color: var(--muted); }
+  .halo-dlg-close { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; font-size: 15px; display: grid; place-items: center; }
+  .halo-dlg-close:hover { color: var(--text); border-color: var(--line-strong); }
+  .halo-dlg .seg { align-self: flex-start; flex-wrap: wrap; }
   .codebox { border: 1px solid var(--line); border-radius: 11px; background: var(--code-bg); overflow: hidden; }
   .code-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 13px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
   .copy-btn { border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 11.5px; padding: 2px 9px; border-radius: 6px; cursor: pointer; }
@@ -258,9 +254,9 @@
         <div class="knobs" data-knobs></div>
 
         <div class="ws-label">Developers</div>
-        <button class="ws-nav-item" data-open="#modal-install"><span class="ic">&lt;/&gt;</span><span class="grow">Install &amp; integrate</span></button>
-        <button class="ws-nav-item" data-open="#modal-params"><span class="ic">{ }</span><span class="grow">Current config</span></button>
-        <button class="ws-nav-item" data-open="#modal-guide"><span class="ic">✓</span><span class="grow">Best practices</span></button>
+        <button class="ws-nav-item" data-open="#halo-dlg-install"><span class="ic">&lt;/&gt;</span><span class="grow">Install &amp; integrate</span></button>
+        <button class="ws-nav-item" data-open="#halo-dlg-params"><span class="ic">{ }</span><span class="grow">Current config</span></button>
+        <button class="ws-nav-item" data-open="#halo-dlg-guide"><span class="ic">✓</span><span class="grow">Best practices</span></button>
 
         <div class="ws-hint"><b>Try it:</b> press send in the input, or pick another origin in the top bar and click anywhere on the dashboard.</div>
       </aside>
@@ -329,10 +325,9 @@
   <button class="reset-btn" type="button" data-action="reset-params" title="Restore ring width, bend, duration, reduced motion, palette and origin to their defaults">↺ Reset settings</button>
 </template>
 
-<div class="modal-backdrop" id="modal-backdrop">
-  <div class="modal" id="modal-install" role="dialog" aria-modal="true" aria-label="Install &amp; integrate">
-    <div class="modal-head"><h3>Install &amp; integrate</h3><button class="modal-close" data-close aria-label="Close">×</button></div>
-    <p class="modal-desc">Use npm or a no-build CDN import, or copy a prompt and let your AI wire it in or build it from scratch.</p>
+  <dialog class="halo-dlg" id="halo-dlg-install" aria-label="Install &amp; integrate">
+    <div class="halo-dlg-head"><h3>Install &amp; integrate</h3><button class="halo-dlg-close" data-close aria-label="Close">×</button></div>
+    <p class="halo-dlg-desc">Use npm or a no-build CDN import, or copy a prompt and let your AI wire it in or build it from scratch.</p>
     <div class="seg" id="install-tabs" role="group">
       <button aria-pressed="true" data-tab="npm">npm</button>
       <button aria-pressed="false" data-tab="cdn">CDN</button>
@@ -343,11 +338,11 @@
       <div class="code-head"><span id="install-label">npm + html-to-image</span><button class="copy-btn" data-copy="#install-code">Copy</button></div>
       <pre id="install-code"></pre>
     </div>
-  </div>
+  </dialog>
 
-  <div class="modal" id="modal-params" role="dialog" aria-modal="true" aria-label="Current config">
-    <div class="modal-head"><h3>Current config</h3><button class="modal-close" data-close aria-label="Close">×</button></div>
-    <p class="modal-desc">Same settings as the Halo panel in the sidebar: change them in either place and the init code below follows.</p>
+  <dialog class="halo-dlg" id="halo-dlg-params" aria-label="Current config">
+    <div class="halo-dlg-head"><h3>Current config</h3><button class="halo-dlg-close" data-close aria-label="Close">×</button></div>
+    <p class="halo-dlg-desc">Same settings as the Halo panel in the sidebar: change them in either place and the init code below follows.</p>
     <div class="m-knobs" data-knobs></div>
     <div class="codebox">
       <div class="code-head"><span>Init code</span><button class="copy-btn" data-copy="#params-code">Copy</button></div>
@@ -357,12 +352,12 @@
       <div class="code-head"><span id="trigger-code-label">Trigger code</span><button class="copy-btn" data-copy="#trigger-code">Copy</button></div>
       <pre id="trigger-code"></pre>
     </div>
-    <div class="m-links"><button class="tb-btn" data-open="#modal-install">&lt;/&gt; Install &amp; integrate</button><button class="tb-btn" data-open="#modal-guide">✓ Best practices</button></div>
-  </div>
+    <div class="m-links"><button class="tb-btn" data-open="#halo-dlg-install">&lt;/&gt; Install &amp; integrate</button><button class="tb-btn" data-open="#halo-dlg-guide">✓ Best practices</button></div>
+  </dialog>
 
-  <div class="modal" id="modal-guide" role="dialog" aria-modal="true" aria-label="Best practices">
-    <div class="modal-head"><h3>Best practices</h3><button class="modal-close" data-close aria-label="Close">×</button></div>
-    <p class="modal-desc">Treat the halo as punctuation: use it only to mark moments worth the user’s attention.</p>
+  <dialog class="halo-dlg" id="halo-dlg-guide" aria-label="Best practices">
+    <div class="halo-dlg-head"><h3>Best practices</h3><button class="halo-dlg-close" data-close aria-label="Close">×</button></div>
+    <p class="halo-dlg-desc">Treat the halo as punctuation: use it only to mark moments worth the user’s attention.</p>
     <div class="bp-grid">
       <div class="bp-card"><h4>✅ Good for</h4><ul>
         <li>Clicking or pressing <code>⌘K</code> to wake an AI / search box</li>
@@ -375,8 +370,7 @@
         <li>Replacing a loading animation for ongoing work</li>
       </ul></div>
     </div>
-  </div>
-</div>
+  </dialog>
 
 <script type="module">
 import { createShockwaveHalo, PALETTES } from '../shockwave-halo.js';
@@ -532,16 +526,20 @@ $('#install-tabs').addEventListener('click', e => { const b = e.target.closest('
 renderInstall('npm');
 
 /* ---------- dialogs ---------- */
-const backdrop = $('#modal-backdrop');
-function openModal(id) {
-  backdrop.querySelectorAll('.modal').forEach(m => m.classList.toggle('active', m.matches(id)));
-  backdrop.classList.add('open');
+const dialogs = $$('.halo-dlg');
+function openModal(sel) {
+  const d = $(sel);
+  dialogs.forEach(x => { if (x !== d && x.open) x.close(); });
+  if (!d.open) d.showModal();
 }
-const closeModals = () => { backdrop.classList.remove('open'); backdrop.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); };
 $$('[data-open]').forEach(b => b.onclick = () => openModal(b.dataset.open));
-$('#open-params-narrow').onclick = () => openModal('#modal-params');
-backdrop.addEventListener('click', e => { if (e.target === backdrop || e.target.closest('[data-close]')) closeModals(); });
-addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+$('#open-params-narrow').onclick = () => openModal('#halo-dlg-params');
+dialogs.forEach(d => d.addEventListener('click', e => {
+  // a click on ::backdrop reports the dialog as its target; tell it from a click on the dialog's own padding by position
+  const r = d.getBoundingClientRect();
+  const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+  if (outside || e.target.closest('[data-close]')) d.close();
+}));   // Escape is handled natively by <dialog>
 $$('[data-copy]').forEach(b => b.onclick = () => {
   navigator.clipboard?.writeText($(b.dataset.copy).textContent);
   const old = b.textContent; b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = old, 1200);
