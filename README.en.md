@@ -15,6 +15,8 @@
   <img src="https://img.shields.io/badge/Theme-Light_%26_Dark-18181c?style=flat-square" alt="Light & Dark" />
   <img src="https://img.shields.io/badge/Version-v1.0.0-0f172a?style=flat-square" alt="v1.0.0" />
   <img src="https://img.shields.io/badge/License-MIT-64748b?style=flat-square" alt="MIT License" />
+  <a href="https://x.com/Claude202309"><img src="https://img.shields.io/badge/X-@Claude202309-000000?style=flat-square&logo=x&logoColor=white" alt="X" /></a>
+  <a href="https://www.xiaohongshu.com/user/profile/5c094b50f7e8b948da476607"><img src="https://img.shields.io/badge/RedNote-Profile-ff2442?style=flat-square&logo=xiaohongshu&logoColor=white" alt="RedNote" /></a>
 </p>
 
 </div>
@@ -305,7 +307,7 @@ Check, and tell me what you checked:
 
 ### Build from Scratch
 
-> Best for: **You're building a mobile or desktop app** (iOS Metal, Android AGSL, Flutter, Rust, etc.) or want to implement the entire effect from scratch in your own stack.
+> Best for: **Building completely from scratch with a standalone prompt—no dependency on or reference to this repo.** Ideal for mobile/desktop apps (iOS Metal, Android AGSL, Flutter, Rust, etc.) or custom implementations inside your own design system.
 
 <details>
 <summary><strong>Click to expand & copy the Build from Scratch Prompt</strong></summary>

@@ -1,166 +1,400 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shockwave Halo Demo</title>
-<!-- optional: preload html-to-image as a global; otherwise the component imports it from the CDN on demand -->
+<title>Shockwave Halo — 交互式文档与演示</title>
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
 <style>
   :root {
-    --bg: #eef0f3; --surface: #ffffff; --card: #ffffff; --soft: #f5f6f8;
-    --line: rgb(15 23 42 / 0.10); --line-strong: rgb(15 23 42 / 0.16);
+    --bg: #f4f5f7; --surface: #ffffff; --card: #ffffff; --soft: #f5f6f8; --code-bg: #f8fafc;
+    --line: rgb(15 23 42 / 0.09); --line-strong: rgb(15 23 42 / 0.16);
     --text: #0f172a; --muted: #64748b; --faint: #94a3b8;
     --accent: #4f6bff; --ok: #12a26b; --warn: #d98a12;
-    --pill: #ffffff;
-    --shadow: 0 0 0 1px rgb(15 23 42 / 0.09), 0 2px 4px rgb(15 23 42 / 0.04), 0 28px 64px -16px rgb(15 23 42 / 0.22);
-    --metal: linear-gradient(120deg, rgb(238 240 243), rgb(196 202 210) 28%, rgb(241 243 245) 50%, rgb(188 195 204) 74%, rgb(233 236 239));
-    --send: #0f172a; --send-fg: #fff;
+    --shadow: 0 0 0 1px rgb(15 23 42 / 0.08), 0 4px 12px rgb(15 23 42 / 0.04), 0 24px 48px -16px rgb(15 23 42 / 0.14);
     color-scheme: light;
   }
   [data-theme="dark"] {
-    --bg: #09090b; --surface: #131316; --card: #18181c; --soft: #1e1e23;
+    --bg: #09090b; --surface: #131316; --card: #18181c; --soft: #1e1e23; --code-bg: #111114;
     --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14);
     --text: #ececf1; --muted: #8d8d98; --faint: #5f5f69;
     --accent: #8ea2ff; --ok: #3ccf91; --warn: #f0b048;
-    --pill: rgb(30 30 33);
-    --shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 2px 4px rgb(0 0 0 / 0.3), 0 28px 64px -16px rgb(0 0 0 / 0.7);
-    --metal: linear-gradient(120deg, rgb(74 79 87), rgb(51 55 61));
-    --send: #ececf1; --send-fg: #111;
+    --shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 4px 12px rgb(0 0 0 / 0.35), 0 24px 48px -16px rgb(0 0 0 / 0.65);
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
+  html { scroll-behavior: smooth; }
   body {
-    background: var(--bg); color: var(--text);
-    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased; overflow: hidden;
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  /* theme cross-fade */
-  body, .area, .card, .chip, .node, .row, .tb-btn, .seg, .seg button, .stat, hr, .wire, .avatar {
+  body, .area, .card, .chip, .node, .row, .btn, .seg, .seg button, .stat, hr, .wire, .avatar, .codebox, .pal-card, .bp-card {
     transition: background-color .4s ease, color .4s ease, border-color .4s ease, box-shadow .4s ease, fill .4s, stroke .4s;
   }
-  .app { height: 100%; display: flex; flex-direction: column; }
 
-  /* toolbar */
-  .toolbar { height: 52px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; }
-  .logo { width: 22px; height: 22px; border-radius: 7px; background: linear-gradient(135deg, #4f6bff, #b26bff); }
-  .crumbs { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 13px; }
-  .crumbs b { color: var(--text); font-weight: 600; }
+  /* Top Navigation */
+  .topnav {
+    position: sticky; top: 0; z-index: 40; height: 54px;
+    display: flex; align-items: center; gap: 14px; padding: 0 24px;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 14px; color: var(--text); text-decoration: none; }
+  .logo { width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, #4f6bff, #b26bff); }
+  .badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); font-weight: 500; }
+  .navlinks { display: flex; gap: 16px; margin-left: 12px; }
+  .navlinks a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  .navlinks a:hover { color: var(--text); }
   .spacer { flex: 1; }
-  .tb-btn {
-    height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line);
-    background: var(--surface); color: var(--text); font: inherit; font-size: 12.5px; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  .tb-btn:hover { border-color: var(--line-strong); }
-  .seg { display: inline-flex; padding: 2px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); }
-  .seg button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; height: 24px; padding: 0 9px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
-  .seg button[aria-pressed="true"] { background: var(--soft); color: var(--text); }
-  .sw { width: 9px; height: 9px; border-radius: 50%; }
-  .mode { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .mode-pill { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; padding: 3px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
 
-  /* content area */
-  .area {
-    position: relative; flex: 1; margin: 0 12px 12px; border-radius: 12px; overflow: hidden;
-    background: var(--surface); border: 1px solid var(--line);
+  /* Buttons & Segmented Controls */
+  .btn {
+    height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--text); font: inherit; font-size: 12.5px; font-weight: 500;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
   }
-  .content { position: absolute; inset: 0; padding: 28px 32px 140px; display: flex; flex-direction: column; gap: 22px; }
-  .head { display: flex; align-items: flex-end; gap: 16px; }
-  .head h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
-  .head p { margin: 4px 0 0; color: var(--muted); }
+  .btn:hover { border-color: var(--line-strong); }
+  .btn.primary { background: var(--text); color: var(--surface); border-color: transparent; }
+  .btn.primary:hover { opacity: 0.9; }
+  .seg { display: inline-flex; padding: 2px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); }
+  .seg button {
+    border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12.5px;
+    height: 26px; padding: 0 11px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .seg button[aria-pressed="true"] { background: var(--soft); color: var(--text); font-weight: 500; }
+
+  /* Two-Column Split Layout: Left Guide + Right Sticky Live Stage */
+  .layout {
+    max-width: 1360px; margin: 0 auto; padding: 28px 24px 64px;
+    display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 36px; align-items: start;
+  }
+
+  /* Left Guide Column */
+  .guide { display: flex; flex-direction: column; gap: 44px; }
+  .step { scroll-margin-top: 76px; }
+  .step-num { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 6px; }
+  .step h2 { font-size: 20px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .step h1 { font-size: 28px; margin: 0 0 10px; letter-spacing: -0.025em; line-height: 1.2; }
+  .lead { margin: 0 0 16px; color: var(--muted); font-size: 14.5px; line-height: 1.65; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+
+  /* Code Blocks */
+  .codebox {
+    position: relative; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--code-bg); overflow: hidden; margin-top: 10px;
+  }
+  .codebox-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 12px; border-bottom: 1px solid var(--line); font-size: 11.5px; color: var(--muted);
+  }
+  .copy-btn {
+    border: 1px solid var(--line); background: var(--surface); color: var(--text);
+    font: inherit; font-size: 11px; padding: 2px 8px; border-radius: 6px; cursor: pointer;
+  }
+  .copy-btn:hover { border-color: var(--line-strong); }
+  pre {
+    margin: 0; padding: 12px 14px; overflow-x: auto;
+    font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    color: var(--text);
+  }
+
+  /* Palette Grid */
+  .pal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
+  .pal-card {
+    text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); cursor: pointer; font: inherit; color: var(--text);
+  }
+  .pal-card:hover { border-color: var(--line-strong); }
+  .pal-card[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .pal-bar { height: 8px; border-radius: 999px; margin-bottom: 8px; }
+  .pal-name { font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; }
+  .pal-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* Parameter Controls */
+  .ctrl-list { display: flex; flex-direction: column; gap: 12px; margin: 12px 0; }
+  .ctrl {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
+  }
+  .ctrl-info { display: flex; flex-direction: column; }
+  .ctrl-name { font-weight: 600; font-size: 13px; font-family: ui-monospace, monospace; }
+  .ctrl-desc { font-size: 12px; color: var(--muted); }
+  .ctrl-right { display: flex; align-items: center; gap: 8px; }
+  .ctrl input[type="range"] { width: 120px; accent-color: var(--accent); cursor: pointer; }
+  .ctrl-val { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted); min-width: 44px; text-align: right; }
+
+  .layer-checks { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+  .chk {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
+    border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+    font-size: 12.5px; cursor: pointer; user-select: none;
+  }
+  .chk input { accent-color: var(--accent); margin: 0; }
+
+  /* Best Practices */
+  .bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .bp-card { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+  .bp-card h4 { margin: 0 0 8px; font-size: 13px; }
+  .bp-card ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
+
+  /* Right Sticky Live Stage */
+  .stage-wrap { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 10px; }
+  .stage-bar { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 0 4px; }
+  .area {
+    position: relative; height: 600px; border-radius: 14px; overflow: hidden;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
+  }
+  .content { position: absolute; inset: 0; padding: 24px 26px 128px; display: flex; flex-direction: column; gap: 18px; }
+  .head { display: flex; align-items: flex-end; gap: 12px; }
+  .head h3 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  .head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
   .chips { display: flex; gap: 6px; margin-left: auto; }
-  .chip { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--surface); }
-  .chip .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--card); }
-  .stat .k { font-size: 12px; color: var(--muted); }
-  .stat .v { font-size: 22px; font-weight: 600; margin-top: 4px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
-  .stat .d { font-size: 12px; color: var(--ok); }
-  .cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; flex: 1; min-height: 0; }
+  .chip { font-size: 11.5px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--surface); }
+  .chip .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: var(--card); }
+  .stat .k { font-size: 11.5px; color: var(--muted); }
+  .stat .v { font-size: 19px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat .d { font-size: 11.5px; color: var(--ok); }
+  .cols { display: grid; grid-template-columns: 1.35fr 1fr; gap: 10px; flex: 1; min-height: 0; }
   .card { border: 1px solid var(--line); border-radius: 10px; background: var(--card); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .card h3 { margin: 0; font-size: 13px; font-weight: 600; padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
-  .card h3 span { color: var(--faint); font-weight: 400; }
-  .graph { position: relative; flex: 1; min-height: 160px; }
+  .card h4 { margin: 0; font-size: 12.5px; font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+  .card h4 span { color: var(--faint); font-weight: 400; }
+  .graph { position: relative; flex: 1; min-height: 150px; }
   .graph svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   .wire { fill: none; stroke: var(--line-strong); stroke-width: 1.25; }
-  .node { position: absolute; transform: translate(-50%, -50%); padding: 6px 11px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); font-size: 12px; white-space: nowrap; }
-  .node i { font-style: normal; color: var(--faint); margin-left: 6px; }
-  .list { padding: 0 16px; overflow: hidden; }
-  .row { display: flex; gap: 10px; align-items: center; padding: 11px 0; }
-  .avatar { width: 24px; height: 24px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 11px; font-weight: 600; color: #fff; }
+  .node { position: absolute; transform: translate(-50%, -50%); padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); font-size: 11.5px; white-space: nowrap; }
+  .node i { font-style: normal; color: var(--faint); margin-left: 5px; }
+  .list { padding: 0 14px; overflow: hidden; }
+  .row { display: flex; gap: 9px; align-items: center; padding: 9px 0; font-size: 12.5px; }
+  .avatar { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 10.5px; font-weight: 600; color: #fff; }
   .row .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row .t b { font-weight: 600; }
-  .row .when { color: var(--faint); font-size: 12px; }
+  .row .when { color: var(--faint); font-size: 11.5px; }
   hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 
-  @media (max-width: 760px) {
+  @media (max-width: 1024px) {
+    .layout { grid-template-columns: 1fr; }
+    .stage-wrap { position: static; order: -1; }
+    .area { height: 480px; }
+    .navlinks { display: none; }
+  }
+  @media (max-width: 640px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
     .cols { grid-template-columns: 1fr; }
-    .cols .card:last-child, .chips, .crumbs { display: none; }
-    .content { padding: 20px 16px 130px; }
+    .cols .card:last-child, .chips { display: none; }
+    .pal-grid, .bp-grid { grid-template-columns: 1fr; }
   }
-  .seg + .seg { margin-left: 2px; }
 </style>
 </head>
 <body>
-<div class="app">
-  <header class="toolbar">
-    <div class="logo"></div>
-    <div class="crumbs">Workspace <span>/</span> <b>Orbit Launch</b></div>
-    <div class="spacer"></div>
-    <span class="mode" id="mode">…</span>
-    <div class="seg" id="origins" role="group" aria-label="Origin"></div>
-    <div class="seg" id="palettes" role="group" aria-label="Halo palette"></div>
-    <button class="tb-btn" id="motion" aria-pressed="false">Motion: full</button>
-    <button class="tb-btn" id="theme">◐ Theme</button>
-    <button class="tb-btn" id="replay">↻ Replay</button>
-  </header>
 
-  <main class="area" id="area">
-    <div class="content">
-      <div class="head">
-        <div>
-          <h1>Orbit Launch</h1>
-          <p>Q4 release plan · last updated 12 minutes ago</p>
+<header class="topnav">
+  <a class="brand" href="#intro"><span class="logo"></span>Shockwave Halo</a>
+  <span class="badge">v1.0.0 · MIT</span>
+  <nav class="navlinks">
+    <a href="#intro">示例</a>
+    <a href="#install">安装</a>
+    <a href="#triggers">触发</a>
+    <a href="#themes">主题与配色</a>
+    <a href="#params">参数调校</a>
+    <a href="#practices">最佳实践</a>
+  </nav>
+  <div class="spacer"></div>
+  <span class="mode-pill" id="mode">…</span>
+  <button class="btn" id="theme-btn">◐ 明暗切换</button>
+  <button class="btn primary" id="replay-btn">▶ 触发一次</button>
+</header>
+
+<div class="layout">
+  <!-- Left: Step-by-Step Interactive Documentation -->
+  <div class="guide">
+
+    <!-- 1. Introduction & Live Example -->
+    <section class="step" id="intro">
+      <div class="step-num">01 · 示例</div>
+      <h1>会弯折页面的 Web 光环动效</h1>
+      <p class="lead">
+        当用户点击或聚焦输入框时，一道光环从起点扫过页面并淡出：像玻璃透镜般轻轻弯折内容、带一丝色散，并点亮边框与 SVG 线条。零依赖、不挑框架，<strong>静止时零开销</strong>。
+      </p>
+      <div class="actions">
+        <button class="btn primary" id="hero-trigger">▶ 触发光环</button>
+        <button class="btn" id="hero-reset">收起输入框</button>
+      </div>
+      <p class="lead" style="font-size:12.5px; margin-bottom:0;">
+        💡 试试点击右侧画布底部的 <b>Ask AI</b> 胶囊，或按 <kbd>⌘K</kbd> / <kbd>Ctrl K</kbd> 直接体验完整动效。
+      </p>
+    </section>
+
+    <!-- 2. Installation -->
+    <section class="step" id="install">
+      <div class="step-num">02 · 安装</div>
+      <h2>三种引入方式，或直接交给 AI</h2>
+      <p class="lead">支持 npm、CDN 免构建引入、直接复制单文件，或者把指令复制给 Cursor / Claude Code。</p>
+      <div class="seg" id="install-tabs" role="group" aria-label="Install method">
+        <button aria-pressed="true" data-tab="npm">npm</button>
+        <button aria-pressed="false" data-tab="cdn">CDN</button>
+        <button aria-pressed="false" data-tab="ai">Tell your AI</button>
+      </div>
+      <div class="codebox">
+        <div class="codebox-head">
+          <span id="install-label">npm + html-to-image</span>
+          <button class="copy-btn" id="copy-install">复制</button>
         </div>
-        <div class="chips">
-          <span class="chip"><span class="dot" style="background:var(--ok)"></span>On track</span>
-          <span class="chip">Q4 2026</span>
-          <span class="chip">12 members</span>
+        <pre id="install-code"></pre>
+      </div>
+    </section>
+
+    <!-- 3. Triggers & Origin -->
+    <section class="step" id="triggers">
+      <div class="step-num">03 · 触发与起点</div>
+      <h2>从元素、点击位置或边缘出发</h2>
+      <p class="lead">切换下方起点模式，然后点击右侧预览区或输入框，实时观察光环形状与对应代码。</p>
+      <div class="seg" id="origins" role="group" aria-label="Origin mode"></div>
+      <div class="codebox">
+        <div class="codebox-head">
+          <span>当前触发代码</span>
+          <button class="copy-btn" id="copy-trigger">复制</button>
+        </div>
+        <pre id="trigger-code"></pre>
+      </div>
+    </section>
+
+    <!-- 4. Themes & Palettes -->
+    <section class="step" id="themes">
+      <div class="step-num">04 · 主题与配色</div>
+      <h2>4 套内置配色 + 明暗平滑过渡</h2>
+      <p class="lead">
+        每套配色均针对暗色（明亮饱和）与亮色（柔和通透）分别调校；切换主题时颜色会以 400ms 平滑交叉渐变。点击卡片立即预览：
+      </p>
+      <div class="actions">
+        <button class="btn" id="theme-toggle-inline">◐ 切换亮色 / 暗色主题</button>
+      </div>
+      <div class="pal-grid" id="palettes"></div>
+    </section>
+
+    <!-- 5. Parameters & Layers -->
+    <section class="step" id="params">
+      <div class="step-num">05 · 参数调校</div>
+      <h2>实时调节光环宽度、弯折与效果层</h2>
+      <p class="lead">拖动滑块或开关效果层后，点击“按当前参数触发”即可在右侧画布看到真实变化。</p>
+
+      <div class="ctrl-list">
+        <div class="ctrl">
+          <div class="ctrl-info"><span class="ctrl-name">ringWidth</span><span class="ctrl-desc">单个色环宽度 (px)</span></div>
+          <div class="ctrl-right"><input type="range" id="p-width" min="50" max="200" step="5" value="110"><span class="ctrl-val" id="v-width">110px</span></div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-info"><span class="ctrl-name">bendPx</span><span class="ctrl-desc">透镜弯折强度 (px)</span></div>
+          <div class="ctrl-right"><input type="range" id="p-bend" min="0" max="16" step="1" value="7"><span class="ctrl-val" id="v-bend">7px</span></div>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-info"><span class="ctrl-name">duration</span><span class="ctrl-desc">动画总时长 (ms)</span></div>
+          <div class="ctrl-right"><input type="range" id="p-dur" min="400" max="2000" step="100" value="1000"><span class="ctrl-val" id="v-dur">1000ms</span></div>
         </div>
       </div>
-      <div class="stats">
-        <div class="stat"><div class="k">Open tasks</div><div class="v">148</div><div class="d">−12 this week</div></div>
-        <div class="stat"><div class="k">Velocity</div><div class="v">34 pts</div><div class="d">+8%</div></div>
-        <div class="stat"><div class="k">Build health</div><div class="v">98.2%</div><div class="d">+0.4%</div></div>
-        <div class="stat"><div class="k">Ship date</div><div class="v">Dec 9</div><div class="d" style="color:var(--warn)">2 risks</div></div>
+
+      <div class="layer-checks">
+        <label class="chk"><input type="checkbox" id="l-bend" checked> bend（弯折）</label>
+        <label class="chk"><input type="checkbox" id="l-split" checked> split（色散）</label>
+        <label class="chk"><input type="checkbox" id="l-bevel" checked> bevel（边缘折射）</label>
+        <label class="chk"><input type="checkbox" id="l-glints" checked> glints（线条高光）</label>
+        <label class="chk"><input type="checkbox" id="p-reduced"> reducedMotion（减弱动效）</label>
       </div>
-      <div class="cols">
-        <section class="card">
-          <h3>Pipeline <span>6 stages</span></h3>
-          <div class="graph" id="graph">
-            <svg id="wires" data-halo-line preserveAspectRatio="none"></svg>
-            <div class="node" data-x="12" data-y="30">Spec<i>done</i></div>
-            <div class="node" data-x="12" data-y="72">Design<i>done</i></div>
-            <div class="node" data-x="40" data-y="50">Build<i>62%</i></div>
-            <div class="node" data-x="66" data-y="28">QA<i>queued</i></div>
-            <div class="node" data-x="66" data-y="72">Docs<i>40%</i></div>
-            <div class="node" data-x="89" data-y="50">Release</div>
-          </div>
-        </section>
-        <section class="card">
-          <h3>Activity <span>today</span></h3>
-          <div class="list">
-            <div class="row"><span class="avatar" style="background:#4f6bff">MK</span><span class="t"><b>Mara</b> merged the payments refactor</span><span class="when">9:41</span></div><hr>
-            <div class="row"><span class="avatar" style="background:#d9468f">JL</span><span class="t"><b>Jun</b> flagged a risk on Docs</span><span class="when">9:12</span></div><hr>
-            <div class="row"><span class="avatar" style="background:#12a26b">AR</span><span class="t"><b>Ana</b> closed 6 QA tickets</span><span class="when">8:50</span></div><hr>
-            <div class="row"><span class="avatar" style="background:#d98a12">TS</span><span class="t"><b>Theo</b> moved the ship date</span><span class="when">8:03</span></div>
-          </div>
-        </section>
+
+      <div class="actions" style="margin-top:12px;">
+        <button class="btn primary" id="param-trigger">▶ 按当前参数触发</button>
       </div>
+
+      <div class="codebox">
+        <div class="codebox-head">
+          <span>实时配置代码</span>
+          <button class="copy-btn" id="copy-params">复制</button>
+        </div>
+        <pre id="params-code"></pre>
+      </div>
+    </section>
+
+    <!-- 6. Best Practices -->
+    <section class="step" id="practices">
+      <div class="step-num">06 · 最佳实践</div>
+      <h2>把光环当作“标点符号”，而非日常装饰</h2>
+      <p class="lead">光环带有页面弯折，适合标记值得注意的瞬间，其余时间让界面保持安静。</p>
+      <div class="bp-grid">
+        <div class="bp-card">
+          <h4>✅ 适合使用</h4>
+          <ul>
+            <li>点击 / <code>⌘K</code> 聚焦 AI 或搜索框</li>
+            <li>表单提交、发布、AI 开始回答</li>
+            <li>进入聚焦预览、结账等重要转场</li>
+          </ul>
+        </div>
+        <div class="bp-card">
+          <h4>❌ 建议避免</h4>
+          <ul>
+            <li>鼠标 hover、下拉菜单、Tooltip</li>
+            <li>列表勾选、翻页、高频筛选</li>
+            <li>替代持续加载中的 Loading 动画</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Right: Sticky Non-Scrolling Live Preview Stage -->
+  <aside class="stage-wrap">
+    <div class="stage-bar">
+      <span id="stage-hint">实时画布 · 点击底部输入框或直接点击画布触发</span>
+      <span id="stage-status">snapshot 就绪</span>
     </div>
-  </main>
+    <main class="area" id="area">
+      <div class="content">
+        <div class="head">
+          <div>
+            <h3>Orbit Launch</h3>
+            <p>Q4 release plan · last updated 12 minutes ago</p>
+          </div>
+          <div class="chips">
+            <span class="chip"><span class="dot" style="background:var(--ok)"></span>On track</span>
+            <span class="chip">Q4 2026</span>
+            <span class="chip">12 members</span>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">Open tasks</div><div class="v">148</div><div class="d">−12 this week</div></div>
+          <div class="stat"><div class="k">Velocity</div><div class="v">34 pts</div><div class="d">+8%</div></div>
+          <div class="stat"><div class="k">Build health</div><div class="v">98.2%</div><div class="d">+0.4%</div></div>
+          <div class="stat"><div class="k">Ship date</div><div class="v">Dec 9</div><div class="d" style="color:var(--warn)">2 risks</div></div>
+        </div>
+        <div class="cols">
+          <section class="card">
+            <h4>Pipeline <span>6 stages</span></h4>
+            <div class="graph" id="graph">
+              <svg id="wires" data-halo-line preserveAspectRatio="none"></svg>
+              <div class="node" data-x="14" data-y="30">Spec<i>done</i></div>
+              <div class="node" data-x="14" data-y="72">Design<i>done</i></div>
+              <div class="node" data-x="42" data-y="50">Build<i>62%</i></div>
+              <div class="node" data-x="68" data-y="28">QA<i>queued</i></div>
+              <div class="node" data-x="68" data-y="72">Docs<i>40%</i></div>
+              <div class="node" data-x="89" data-y="50">Release</div>
+            </div>
+          </section>
+          <section class="card">
+            <h4>Activity <span>today</span></h4>
+            <div class="list">
+              <div class="row"><span class="avatar" style="background:#4f6bff">MK</span><span class="t"><b>Mara</b> merged payments</span><span class="when">9:41</span></div><hr>
+              <div class="row"><span class="avatar" style="background:#d9468f">JL</span><span class="t"><b>Jun</b> flagged Docs risk</span><span class="when">9:12</span></div><hr>
+              <div class="row"><span class="avatar" style="background:#12a26b">AR</span><span class="t"><b>Ana</b> closed 6 QA</span><span class="when">8:50</span></div><hr>
+              <div class="row"><span class="avatar" style="background:#d98a12">TS</span><span class="t"><b>Theo</b> moved ship date</span><span class="when">8:03</span></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </aside>
 </div>
 
 <script type="module">
@@ -170,53 +404,264 @@ import { createAIPill } from '../ai-pill.js';
 const $ = s => document.querySelector(s);
 const root = document.documentElement, area = $('#area');
 
-/* the two components */
-const halo = createShockwaveHalo(area, { exclude: '.aip', onEnd: () => setMode() });
+/* 1. Initialize Shockwave Halo & AI Pill */
+const halo = createShockwaveHalo(area, { exclude: '.aip', onEnd: () => updateMode() });
 const pill = createAIPill(area, {
   onTrigger: ({ opened }) => { if (originMode === 'input') halo.trigger({ origin: pill.el, delay: opened ? 40 : 0 }); },
   onSubmit: text => console.log('ask:', text),
 });
 halo.setOptions({ origin: pill.el });
 
-/* origin switcher: the AI input (default), the point that was clicked, the middle of the area */
+/* 2. Installation Tabs */
+const INSTALL = {
+  npm: {
+    label: 'npm + html-to-image',
+    code: `npm i github:amasun/shockwave-halo#v1.0.0 html-to-image
+
+import { createShockwaveHalo } from 'shockwave-halo';
+import { toCanvas } from 'html-to-image';
+
+const halo = createShockwaveHalo(area, {
+  snapshot: (el, opts) => toCanvas(el, opts),
+});`
+  },
+  cdn: {
+    label: 'ES Module CDN（免构建）',
+    code: `<script type="module">
+  import { createShockwaveHalo } from 'https://cdn.jsdelivr.net/gh/amasun/shockwave-halo@v1.0.0/shockwave-halo.js';
+  const halo = createShockwaveHalo(document.querySelector('#area'));
+<\/script>`
+  },
+  ai: {
+    label: '引用本库接入（复制给 Cursor / Claude Code / Codex）',
+    code: `Add shockwave-halo from https://github.com/amasun/shockwave-halo to my web app:
+mount it on my non-scrolling main content area, exclude the AI input,
+and trigger the Aurora halo when the AI input is focused or clicked.`
+  },
+  scratch: {
+    label: '不引用本站项目 · 纯 Prompt 让 AI 从零制作（跨平台通用）',
+    code: `Add a shockwave halo to my product: when something triggers it (by default, clicking or focusing the AI input), a faint halo of light sweeps across the page from one place and fades out, bending the page a few pixels as it passes, with a slight color split, in my dark and light modes. Build it inside my code and design system; do not change what the page does or how it looks at rest. Every value below is a default to start from, not a requirement.
+
+First look at my app (section 0). Then ask me these one at a time, offering the default each time, and wait for each answer:
+1. Trigger: what starts the halo (clicking or focusing the AI input, a keyboard shortcut, sending a message, the AI starting to answer, something else), and what happens if it is triggered again while one is running (restart, or ignore).
+2. Origin: where it spreads from (the AI input, a button, the bottom edge of the page, the point that was clicked, the middle of a panel), and over which area (the page's content area, one panel, the whole window). Toolbars always stay clear.
+3. Layers: the color rings (section 3) are always on; ask yes or no for each of the others: the bend (section 4), the color split, the refraction at the edges, the glints on lines and borders. The bend, the split and the refraction need the page as an image (section 6), so say what each costs on my platform.
+4. Colors: one of the four palettes in section 3, or my brand colors (then derive four rings, and a dark and a light version, from them), and which modes my app has.
+5. The input: leave my AI input as it is (the default), or turn it into the pill that springs open with a metal edge (section 1).
+Then propose how you will build it on my platform (section 6 is a starting point, not a prescription), with the cost and any fallback, and wait for my go-ahead.
+
+0. Start from what exists
+- Find the AI input, what opens or focuses it, the page container it sits in, its corner radius, any toolbars over it, and whether the app has a dark mode.
+- List what the page draws with (DOM, a canvas, a native view tree, a GPU renderer) and the platform version range: this decides how the bend can be done (section 6).
+
+1. The input (only if I chose the pill)
+- At rest: a pill 300 x 44 px, radius 22, white (dark: rgb(30 30 33)), a 1px hairline, a sparkle icon, the placeholder "Ask AI about this project" in 14px and a shortcut hint on the right. It sits centered on the page's content, 48px above the page's bottom.
+- On click: the pill dips to 97% for 90ms, then springs open into a card 460 x 100, radius 16, growing from its center and keeping its bottom edge where it was. Spring: progress = 1 - exp(-8t) * cos(6t) over 580ms (barely past the end, settles by the end). The card's content is laid out at its final size from the start and is revealed as it grows; it fades in from 30% of the way. Height and radius follow the same progress.
+- The open card: one line of text at 15px on a 22px line, 16px from the left, the caret first and the placeholder right after it; a hairline; then a toolbar 52px tall: a round add button, a short divider, two pickers (model, mode), and on the right a voice button and the send button, all 32px.
+- Shadow: wide, soft and far, not heavy: 0 0 0 1px rgb(15 23 42 / 0.09), 0 2px 4px rgb(15 23 42 / 0.04), 0 28px 64px -16px rgb(15 23 42 / 0.22). No focus ring; focus shows only as the caret.
+- The metal edge: a 1px border painted with a light silver gradient, linear-gradient(120deg, rgb(238 240 243), rgb(196 202 210) 28%, rgb(241 243 245) 50%, rgb(188 195 204) 74%, rgb(233 236 239)) (dark: rgb(74 79 87) to rgb(51 55 61)), with a highlight on top: conic-gradient(from <angle>, transparent 0 280deg, rgb(255 255 255 / 0.8) 325deg, transparent 360deg). Turn the angle from -60deg to 300deg over 900ms (ease-out) as the card opens, and fade the whole edge in and out over that time (opacity sin(pi * t), at most 0.75). Mask the gradient to the border only (mask with content-box exclude).
+- Closing: back to the pill in 320ms, ease-in-out.
+
+2. The halo's shape and timing
+- The halo is a circle that grows from the origin I chose. The defaults assume the origin is the AI input at the bottom of the page: the circle's center sits below the page, horizontally at the input's center and 650px below the page's bottom edge, so what shows is a wide arc rising from the bottom.
+- It starts with its middle at the page's bottom (radius 650) and grows by 800px over 1000ms, so it ends just past the page's top: radius = 650 + 800 * (1 - 2^(-9t)) / (1 - 2^(-9)). That is very fast at first and slow near the far edge.
+- For another origin, keep the same timing and set the start and the growth so the halo starts at the origin and ends just past the farthest edge of the area: from a point inside the area, center the circle on the point and start at a radius of 0 to 40px; from an edge, put the center beyond that edge, about two thirds of the area's width away.
+- Strength over the same time: min(1, t / 0.03) * (1 - t^2.2), so it is gone by the end and fades over its slow last stretch.
+- It starts on the trigger (40ms after the input starts opening, if it opens).
+- It stays in the area I chose: clip it to that area, with a straight edge under any toolbar and the area's own corner radius elsewhere (12px in the demo). It must never draw over a browser or app toolbar.
+
+3. The rings and the palettes
+- Across the halo's width sit four broad rings, one color each, inside to outside. With w = 110px and x = (distance from the center - radius) / w, ring i is centered at x = i - 1.5 with weight exp(-((x - c) / 0.8)^2); the color is the weighted average of the four, so neighbors blend softly. One fade covers all four: alpha = strength * exp(-1.1 * (x / 2)^2).
+- Light mode tints the page: color = mix(page, ring, alpha * 0.24) + ring * alpha * 0.24 * 0.2.
+- Dark mode adds light (screen): color = 1 - (1 - page) * (1 - ring * alpha * 0.3 * 1.5).
+- Palettes, rings inside to outside. Each is tuned twice: brighter and more saturated on dark, softer on light.
+  Aurora (blue through violet and pink to peach)
+    dark: rgb(80 140 255), rgb(160 110 255), rgb(255 110 180), rgb(255 190 140)
+    light: rgb(110 150 255), rgb(180 130 255), rgb(255 130 190), rgb(255 180 120)
+  Halo (orange through amber to gold, like low sun through a lens)
+    dark: rgb(255 150 60), rgb(255 190 70), rgb(255 225 120), rgb(255 245 210)
+    light: rgb(255 140 50), rgb(255 175 60), rgb(245 200 80), rgb(255 225 150)
+  Frost (mint and aqua with a touch of lime)
+    dark: rgb(80 220 175), rgb(70 195 225), rgb(180 240 150), rgb(235 255 245)
+    light: rgb(40 190 150), rgb(50 170 210), rgb(140 210 90), rgb(180 235 215)
+  Spark (violet into gold)
+    dark: rgb(140 100 255), rgb(200 130 255), rgb(255 200 110), rgb(255 235 170)
+    light: rgb(130 95 240), rgb(185 125 245), rgb(245 185 80), rgb(250 215 120)
+
+4. The bend
+- The whole halo bends the page as one lens, never ring by ring (ring by ring reads as water ripples). With z = x * 0.75: push = 7px * 2.33 * z * exp(-z^2), along the direction away from the circle's center; read the page at position - push. Outside the halo's middle the page stretches, inside it squeezes, over about the width of the rings and no wider.
+- Color split: at most a trace. Read red at 1.08 times the offset and blue at 0.92 times; text must stay clean.
+- The frame holds the page: fade the lens to nothing over the last 56px before the page's edge, so the edge stays straight.
+- The page's lines catch the light: where the halo passes, its rules, borders and the outlines of chips, cards and nodes brighten toward the ring color (mixed 20% toward white), at the halo's strength times exp(-1.4 * (x / 2)^2) times 0.3 on light and 0.14 on dark (a faint glint, not a redrawn border), read at their bent position so the glint follows them. Text and icons never light up. To find the lines, use a second capture of the page with every rule and border drawn white at its own width on black, and nothing else (no text, icons, pictures, fills or shadows); light the page where that capture is white, so a 1px border glints as 1px. Without a capture (a retrofit in the DOM), give each bordered element and divider a CSS variable from 0 to 1 by its distance to the halo's front each frame, and mix its border color toward the ring color by it.
+- The edge as a glass bevel: at the sides and the bottom (not under a toolbar), where the halo reaches the edge, read the last 60px of the page from up to 22px further in (22 * (1 - d/60)^2 * the halo's strength there), so content beside the edge stretches toward it. Where the halo meets the edge, add a thin line of light (exp(-d / 7)) in the ring color mixed 45% toward white.
+
+5. Rhythm
+- On the trigger: if the input opens, it dips to 97% for 90ms, springs open (580ms) and its edge highlight turns (900ms); the halo leaves 40ms after the opening starts and runs 1000ms. Without the input, the halo runs on the trigger.
+- Switching between dark and light cross-fades the halo's colors with the page; never cut.
+- Reduced motion: no bend, no split and no glints; the halo fades in and out in place at half strength over 600ms.
+- Draw only while the halo runs; nothing at rest.
+
+6. How to build it, by platform
+These are suggestions from what worked in the demo and what each platform offers; check them against my stack and its versions, and choose what fits. The halo itself (the rings, and the glints on lines and edges) is only an overlay and works anywhere. The bend needs the page as an image to sample from.
+- Web, as in the demo: a WebGL2 canvas over the page draws everything in one fragment pass from a snapshot of the page. Cap the pixel ratio at 2; the canvas ignores pointer events and is removed or hidden at rest.
+- Web, getting the snapshot:
+  - HTML-in-Canvas (WICG): a canvas with the page as its child, drawn with drawElementImage() or uploaded as a WebGL texture, live and with real browser rendering. Behind the canvas-draw-element flag in recent Chromium and reported on by default from Chrome 157; no Firefox or Safari yet. Use it where present.
+  - SVG foreignObject libraries (html-to-image, modern-screenshot): the browser renders the clone, so it is faithful, but images and fonts must be inlined or same-origin, the root needs a background color, and backdrop-filter is unreliable. Take it once on click (tens to a few hundred ms), then animate.
+  - html2canvas (or html2canvas-pro): it re-implements CSS on a canvas, so modern effects (backdrop-filter, some gradients, oklch) may come out wrong. A last resort.
+  - Fallback without a snapshot: draw only the halo in a transparent canvas over the page (light mode: normal alpha; dark mode: mix-blend-mode: screen or plus-lighter), and skip the bend. In Chromium only, a bend is possible with backdrop-filter pointing at an SVG filter with feDisplacementMap, at a cost.
+- iOS (SwiftUI, iOS 17+): put the halo in a Metal [[stitchable]] function and apply .layerEffect(shader, maxSampleOffset: CGSize(width: 30, height: 30)) to the page view: it can sample the view at bent positions and add the color, live. Drive radius and strength from a TimelineView or an animatable value. Below iOS 17: an overlay with an AngularGradient and blur, without the bend.
+- Android (API 33+): write the shader in AGSL as a RuntimeShader with a uniform shader named for the content, and set view.setRenderEffect(RenderEffect.createRuntimeShaderEffect(shader, "content")) on the page's root (in Compose: Modifier.graphicsLayer { renderEffect = ...asComposeRenderEffect() }). Update its uniforms every frame. Below 33: an overlay only.
+- Flutter (Impeller): a FragmentProgram with ImageFilter.shader inside a BackdropFilter clipped to the page; the engine passes the content as sampler 0 and its size as the first vec2. Use FlutterFragCoord(), flip y on GLES, and check ImageFilter.isShaderFilterSupported, with an overlay-only fallback.
+- Rust: render the UI into an offscreen texture, then draw one fullscreen pass with the same shader ported to WGSL that samples it.
+  - wgpu by hand: render target texture with TEXTURE_BINDING usage, a fullscreen triangle, uniforms in one buffer.
+  - Bevy: a custom post-processing node; call post_process_write() on the ViewTarget to get the source and destination textures, as in Bevy's custom post-processing example.
+  - egui or iced on wgpu: render the frame into a texture through the renderer's wgpu callback and composite with the shader; their widgets cannot sample what is under them by themselves.
+- Electron and Tauri: the web route; Electron can also take a snapshot with webContents.capturePage().
+
+7. Check
+- Dark and light, in the colors I chose: the text under the halo stays readable and unsplit; the halo never shows on a toolbar; the area's corners stay clean; the bend is no wider than the rings.
+- The trigger and the origin are the ones I chose, and the page works exactly as before.
+- It runs only while the halo is visible and costs nothing at rest.`
+  }
+};
+function renderInstall(tab) {
+  $('#install-label').textContent = INSTALL[tab].label;
+  $('#install-code').textContent = INSTALL[tab].code;
+  $('#install-tabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab));
+}
+$('#install-tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tab]');
+  if (b) renderInstall(b.dataset.tab);
+});
+renderInstall('npm');
+
+/* 3. Origin Switcher */
 let originMode = 'input';
-const ORIG = { input: 'AI input', point: 'Click point', center: 'Center' };
+const ORIG = {
+  input:  { label: 'AI 输入框', code: `const halo = createShockwaveHalo(area, { origin: pill.el, exclude: '.aip' });\npill.onTrigger = ({ opened }) => halo.trigger({ delay: opened ? 40 : 0 });` },
+  point:  { label: '点击位置',  code: `area.addEventListener('pointerdown', e => {\n  halo.trigger({ origin: { x: e.clientX, y: e.clientY } });\n});` },
+  center: { label: '区域中心',  code: `halo.trigger({ origin: 'center' });` },
+  bottom: { label: '底部边缘',  code: `halo.trigger({ origin: 'bottom' });` },
+};
 const og = $('#origins');
-for (const [k, label] of Object.entries(ORIG)) {
-  const b = document.createElement('button'); b.textContent = label; b.setAttribute('aria-pressed', k === originMode);
-  b.onclick = () => { originMode = k; og.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+for (const [k, item] of Object.entries(ORIG)) {
+  const b = document.createElement('button');
+  b.textContent = item.label;
+  b.setAttribute('aria-pressed', k === originMode);
+  b.onclick = () => {
+    originMode = k;
+    og.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    $('#trigger-code').textContent = item.code;
+    if (k === 'center' || k === 'bottom') halo.trigger({ origin: k });
+  };
   og.appendChild(b);
 }
+$('#trigger-code').textContent = ORIG[originMode].code;
+
 area.addEventListener('pointerdown', e => {
   if (pill.el.contains(e.target)) return;
   if (originMode === 'point') halo.trigger({ origin: { x: e.clientX, y: e.clientY } });
-  if (originMode === 'center') halo.trigger({ origin: 'center' });
+  else if (originMode === 'center' || originMode === 'bottom') halo.trigger({ origin: originMode });
 });
 
-/* palettes */
-const segs = $('#palettes');
+/* 4. Palettes & Theme */
+let currentPalette = 'Aurora';
+const PAL_DESC = {
+  Aurora: '蓝 → 紫 → 粉 → 暖桃 · 通用首选',
+  Halo:   '橙 → 琥珀 → 金 → 暖白 · 阳光透镜',
+  Frost:  '薄荷 → 水蓝 → 青柠 · 清爽面板',
+  Spark:  '紫罗兰 → 金 → 暖黄 · 灵感高亮',
+};
+const palGrid = $('#palettes');
 for (const name of Object.keys(PALETTES)) {
-  const b = document.createElement('button'), c = PALETTES[name].light;
-  b.innerHTML = `<span class="sw" style="background:linear-gradient(90deg,rgb(${c[0]}),rgb(${c[2]}))"></span>${name}`;
-  b.setAttribute('aria-pressed', name === 'Aurora');
-  b.onclick = () => { halo.setOptions({ palette: name }); segs.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
-  segs.appendChild(b);
+  const c = PALETTES[name].light;
+  const card = document.createElement('button');
+  card.className = 'pal-card';
+  card.setAttribute('aria-pressed', name === currentPalette);
+  card.innerHTML = `
+    <div class="pal-bar" style="background:linear-gradient(90deg, rgb(${c[0]}), rgb(${c[1]}), rgb(${c[2]}), rgb(${c[3]}))"></div>
+    <div class="pal-name"><span>${name}</span></div>
+    <div class="pal-desc">${PAL_DESC[name]}</div>`;
+  card.onclick = () => {
+    currentPalette = name;
+    halo.setOptions({ palette: name });
+    palGrid.querySelectorAll('.pal-card').forEach(x => x.setAttribute('aria-pressed', x === card));
+    syncParamsCode();
+    runPreview();
+  };
+  palGrid.appendChild(card);
 }
 
-/* theme: the component follows <html data-theme> on its own and cross-fades */
 if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'dark';
-$('#theme').onclick = () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; };
+function toggleTheme() {
+  root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  setTimeout(runPreview, 60);
+}
+$('#theme-btn').onclick = toggleTheme;
+$('#theme-toggle-inline').onclick = toggleTheme;
 
-/* reduced motion */
-let reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const mb = $('#motion');
-const syncMotion = () => { mb.textContent = 'Motion: ' + (reduced ? 'reduced' : 'full'); halo.setOptions({ reducedMotion: reduced }); };
-mb.onclick = () => { reduced = !reduced; syncMotion(); };
-syncMotion();
+/* 5. Live Parameter Tuning */
+function syncParamsCode() {
+  const ringWidth = +$('#p-width').value;
+  const bendPx = +$('#p-bend').value;
+  const duration = +$('#p-dur').value;
+  const layers = {
+    bend: $('#l-bend').checked,
+    split: $('#l-split').checked,
+    bevel: $('#l-bevel').checked,
+    glints: $('#l-glints').checked,
+  };
+  const reducedMotion = $('#p-reduced').checked;
 
-$('#replay').onclick = () => { pill.reset(); originMode === 'input' ? pill.trigger() : halo.trigger({ origin: originMode === 'center' ? 'center' : pill.el }); };
+  $('#v-width').textContent = ringWidth + 'px';
+  $('#v-bend').textContent = bendPx + 'px';
+  $('#v-dur').textContent = duration + 'ms';
 
-/* demo graph wires (marked data-halo-line so they glint) */
+  halo.setOptions({ ringWidth, bendPx, duration, layers, reducedMotion });
+  $('#params-code').textContent = `const halo = createShockwaveHalo(area, {
+  palette: '${currentPalette}',
+  ringWidth: ${ringWidth},
+  bendPx: ${bendPx},
+  duration: ${duration},
+  reducedMotion: ${reducedMotion ? 'true' : "'auto'"},
+  layers: { bend: ${layers.bend}, split: ${layers.split}, bevel: ${layers.bevel}, glints: ${layers.glints} },
+});`;
+}
+['#p-width', '#p-bend', '#p-dur', '#l-bend', '#l-split', '#l-bevel', '#l-glints', '#p-reduced'].forEach(sel => {
+  $(sel).addEventListener('input', syncParamsCode);
+  $(sel).addEventListener('change', syncParamsCode);
+});
+syncParamsCode();
+
+/* Trigger helpers */
+function runPreview() {
+  if (originMode === 'input') {
+    pill.reset();
+    pill.trigger();
+  } else {
+    halo.trigger({ origin: originMode === 'point' ? 'bottom' : originMode });
+  }
+}
+$('#replay-btn').onclick = runPreview;
+$('#hero-trigger').onclick = runPreview;
+$('#param-trigger').onclick = runPreview;
+$('#hero-reset').onclick = () => pill.reset();
+
+/* Copy buttons */
+function bindCopy(btnId, preId) {
+  const btn = $(btnId);
+  btn.onclick = () => {
+    navigator.clipboard?.writeText($(preId).textContent);
+    const old = btn.textContent;
+    btn.textContent = '已复制 ✓';
+    setTimeout(() => btn.textContent = old, 1200);
+  };
+}
+bindCopy('#copy-install', '#install-code');
+bindCopy('#copy-trigger', '#trigger-code');
+bindCopy('#copy-params', '#params-code');
+
+/* Pipeline SVG wires (marked data-halo-line so they glint) */
 const graph = $('#graph'), wires = $('#wires');
 function layoutGraph() {
   const r = graph.getBoundingClientRect();
@@ -232,8 +677,13 @@ function layoutGraph() {
 }
 layoutGraph(); addEventListener('resize', layoutGraph);
 
-function setMode() { $('#mode').textContent = halo.mode + (halo.snapshotMs ? ` ${halo.snapshotMs}ms` : ''); }
-setInterval(setMode, 1000);
+function updateMode() {
+  const txt = halo.mode + (halo.snapshotMs ? ` · ${halo.snapshotMs}ms` : '');
+  $('#mode').textContent = txt;
+  $('#stage-status').textContent = txt;
+}
+setInterval(updateMode, 800);
+updateMode();
 window.halo = halo; window.pill = pill;
 </script>
 </body>

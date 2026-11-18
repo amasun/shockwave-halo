@@ -15,6 +15,8 @@
   <img src="https://img.shields.io/badge/Theme-Light_%26_Dark-18181c?style=flat-square" alt="Light & Dark" />
   <img src="https://img.shields.io/badge/Version-v1.0.0-0f172a?style=flat-square" alt="v1.0.0" />
   <img src="https://img.shields.io/badge/License-MIT-64748b?style=flat-square" alt="MIT License" />
+  <a href="https://x.com/Claude202309"><img src="https://img.shields.io/badge/X-@Claude202309-000000?style=flat-square&logo=x&logoColor=white" alt="X" /></a>
+  <a href="https://www.xiaohongshu.com/user/profile/5c094b50f7e8b948da476607"><img src="https://img.shields.io/badge/%E5%B0%8F%E7%BA%A2%E4%B9%A6-%E4%B8%BB%E9%A1%B5-ff2442?style=flat-square&logo=xiaohongshu&logoColor=white" alt="小红书" /></a>
 </p>
 
 </div>
@@ -305,7 +307,7 @@ Check, and tell me what you checked:
 
 ### 从零开始
 
-> 适合：**你在做手机 App / 桌面客户端**（iOS Metal、Android AGSL、Flutter、Rust 等），或想在自己的代码和设计系统里从零写出整套效果。
+> 适合：**不引用本站项目，纯靠 Prompt 让 AI 从零制作**。无论是做手机 App / 桌面客户端（iOS Metal、Android AGSL、Flutter、Rust 等），还是想在自己的代码和设计系统里手写整套效果，都可以直接复制下面这段完整提示词给 AI。
 
 <details>
 <summary><strong>点击展开并复制「从零开始」提示词</strong></summary>
