@@ -111,7 +111,7 @@
   }
   .stage-bar-actions { display: flex; align-items: center; gap: 6px; flex: none; }
   .area {
-    position: relative; height: clamp(290px, 38vh, 360px); border-radius: 16px; overflow: hidden;
+    position: relative; height: clamp(410px, 50vh, 500px); border-radius: 16px; overflow: hidden;
     background: var(--surface); border: 1px solid var(--line); box-shadow: var(--float-shadow);
     transition: background-color .35s ease, border-color .35s ease, box-shadow .35s ease;
   }
@@ -119,58 +119,63 @@
   .area.point-cursor { cursor: crosshair; }
   .area .aip { max-width: calc(100% - 28px); }
   .area .aip-card { width: 100%; }
-  .float-stage:not(.is-expanded) .area .aip { bottom: 12px !important; height: 80px !important; }
-  .float-stage:not(.is-expanded) .area .aip-card { height: 80px; }
-  .float-stage:not(.is-expanded) .area .aip-line { margin: 9px 14px 6px; }
-  .float-stage:not(.is-expanded) .area .aip-tools { height: 42px; }
+  .float-stage:not(.is-expanded) .area .aip { bottom: 14px !important; height: 84px !important; }
+  .float-stage:not(.is-expanded) .area .aip-card { height: 84px; }
+  .float-stage:not(.is-expanded) .area .aip-line { margin: 10px 14px 6px; }
+  .float-stage:not(.is-expanded) .area .aip-tools { height: 44px; }
   .stage-inner {
-    position: absolute; inset: 0; padding: 14px 18px 104px;
-    display: grid; grid-template-columns: 1.35fr 1fr; grid-template-rows: auto auto 1fr;
-    gap: 10px 14px;
+    position: absolute; inset: 0; padding: 16px 20px 112px;
+    display: grid; grid-template-columns: 1.45fr 1fr; grid-template-rows: auto auto 1fr;
+    gap: 12px 14px;
   }
-  .float-stage.is-expanded .stage-inner { padding: 20px 24px 132px; gap: 14px 18px; }
+  .float-stage.is-expanded .stage-inner { padding: 22px 26px 136px; gap: 14px 18px; }
   .ws-head { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .ws-crumb { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); }
+  .ws-crumb { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
   .ws-crumb b { color: var(--text); font-weight: 600; }
-  .ws-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+  .ws-app-icon { width: 16px; height: 16px; border-radius: 5px; background: linear-gradient(135deg, #4f6bff, #9b6bff); display: inline-block; flex: none; }
+  .ws-live { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ok); padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--ok) 12%, transparent); }
+  .ws-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
   .ws-tags { display: flex; gap: 5px; }
   .ws-tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--card); }
 
-  .kpi-row { grid-column: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .kpi-row { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .kpi {
-    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; background: var(--card);
     transition: background-color .35s ease, border-color .35s ease;
   }
-  .kpi-k { font-size: 11px; color: var(--muted); }
-  .kpi-v { font-size: 16px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .kpi-k { font-size: 11px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .kpi-delta { font-size: 10.5px; font-weight: 600; color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); padding: 1px 6px; border-radius: 999px; }
+  .kpi-v { font-size: 19px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 3px; }
 
   .ws-card {
     border: 1px solid var(--line); border-radius: 11px; background: var(--card);
     display: flex; flex-direction: column; min-height: 0; overflow: hidden;
     transition: background-color .35s ease, border-color .35s ease;
   }
-  .ws-card.grow { flex: 1; }
+  .ws-card.grow { grid-column: 1; grid-row: 3; }
+  .ws-card.activity-card { grid-column: 2; grid-row: 3; }
   .ws-card-head {
-    padding: 8px 13px; border-bottom: 1px solid var(--line);
+    padding: 9px 13px; border-bottom: 1px solid var(--line);
     display: flex; align-items: center; justify-content: space-between;
     font-size: 12px; font-weight: 600;
   }
   .ws-card-head span { font-weight: 400; color: var(--faint); font-size: 11px; }
-  .graph { position: relative; flex: 1; min-height: 120px; }
-  .graph svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .wire { fill: none; stroke: var(--line-strong); stroke-width: 1.3; }
-  .node {
-    position: absolute; transform: translate(-50%, -50%); padding: 4px 9px;
-    border-radius: 7px; border: 1px solid var(--line-strong); background: var(--surface);
-    font-size: 11px; font-weight: 500; white-space: nowrap;
-  }
-  .node i { font-style: normal; color: var(--faint); margin-left: 4px; font-weight: 400; }
-  .token-list { padding: 2px 13px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
-  .token-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; font-size: 11.5px; border-bottom: 1px solid var(--line); }
-  .token-row:nth-last-child(-n+2) { border-bottom: 0; }
-  .token-left { display: flex; align-items: center; gap: 7px; }
-  .token-swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line-strong); }
-  .token-val { font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--muted); }
+
+  .chart-wrap { position: relative; flex: 1; min-height: 90px; padding: 10px 12px 6px; display: flex; flex-direction: column; }
+  .chart-svg { width: 100%; flex: 1; min-height: 0; overflow: visible; }
+  .chart-grid { stroke: var(--line); stroke-width: 1; }
+  .chart-line { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .chart-line-sub { fill: none; stroke: var(--line-strong); stroke-width: 1.4; stroke-dasharray: 3 3; }
+  .chart-axis { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); padding-top: 4px; font-variant-numeric: tabular-nums; }
+
+  .insight-list { padding: 4px 13px; display: flex; flex-direction: column; justify-content: space-around; flex: 1; }
+  .insight-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; font-size: 11.5px; border-bottom: 1px solid var(--line); }
+  .insight-row:last-child { border-bottom: 0; }
+  .insight-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .insight-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
+  .insight-dot.ok { background: var(--ok); }
+  .insight-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+  .insight-time { font-size: 10.5px; color: var(--faint); flex: none; font-variant-numeric: tabular-nums; }
 
   /* Prominent 4-Palette Showcase */
   .pal-showcase { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
@@ -302,34 +307,75 @@
       <div class="area" id="area">
         <div class="stage-inner">
           <div class="ws-head">
-            <div class="ws-crumb"><span class="ws-dot"></span><span>Studio</span> / <b>Halo Pipeline</b></div>
+            <div class="ws-crumb">
+              <span class="ws-app-icon"></span>
+              <b>Lumen</b><span style="opacity:.4">/</span><span>Q4 Product Pulse</span>
+              <span class="ws-live"><span class="ws-dot"></span>Live</span>
+            </div>
             <div class="ws-tags">
-              <span class="ws-tag">WebGL2</span>
+              <span class="ws-tag">Production</span>
               <span class="ws-tag" id="stage-theme-tag">Light</span>
             </div>
           </div>
 
           <div class="kpi-row">
-            <div class="kpi"><div class="kpi-k">Ring Width</div><div class="kpi-v" id="kpi-width">110 px</div></div>
-            <div class="kpi"><div class="kpi-k">Lens Bend</div><div class="kpi-v" id="kpi-bend">7 px</div></div>
-            <div class="kpi"><div class="kpi-k">Idle Cost</div><div class="kpi-v">0 ms</div></div>
-          </div>
-
-          <div class="ws-card grow">
-            <div class="ws-card-head">Render Graph <span>data-halo-line</span></div>
-            <div class="graph" id="graph">
-              <svg id="wires" data-halo-line preserveAspectRatio="none"></svg>
-              <div class="node" data-x="16" data-y="32">Origin<i>arc</i></div>
-              <div class="node" data-x="16" data-y="72">Snapshot<i>DOM</i></div>
-              <div class="node" data-x="50" data-y="52">Lens<i>7px</i></div>
-              <div class="node" data-x="84" data-y="32">Split<i>RGB</i></div>
-              <div class="node" data-x="84" data-y="72">Glints<i>1px</i></div>
+            <div class="kpi">
+              <div class="kpi-k">Active Users <span class="kpi-delta">+14.2%</span></div>
+              <div class="kpi-v">24,892</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-k">Conversion <span class="kpi-delta">+0.8%</span></div>
+              <div class="kpi-v">4.86%</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-k">Avg. Latency <span class="kpi-delta">-18ms</span></div>
+              <div class="kpi-v">142 ms</div>
             </div>
           </div>
 
-          <div class="ws-card">
-            <div class="ws-card-head">Active Palette <span id="card-pal-name">Aurora</span></div>
-            <div class="token-list" id="token-list"></div>
+          <div class="ws-card grow">
+            <div class="ws-card-head">Session &amp; Revenue Velocity <span>Last 30 days</span></div>
+            <div class="chart-wrap">
+              <svg class="chart-svg" viewBox="0 0 520 150" preserveAspectRatio="none" data-halo-line>
+                <defs>
+                  <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.22"/>
+                    <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <line class="chart-grid" x1="0" y1="30" x2="520" y2="30"/>
+                <line class="chart-grid" x1="0" y1="75" x2="520" y2="75"/>
+                <line class="chart-grid" x1="0" y1="120" x2="520" y2="120"/>
+                <path class="chart-line-sub" d="M0 112 C70 105, 110 92, 175 96 C240 100, 290 74, 355 78 C420 82, 470 58, 520 52"/>
+                <path d="M0 104 C65 98, 115 74, 175 78 C235 82, 285 44, 345 50 C405 56, 465 24, 520 18 L520 150 L0 150 Z" fill="url(#chartFill)"/>
+                <path class="chart-line" d="M0 104 C65 98, 115 74, 175 78 C235 82, 285 44, 345 50 C405 56, 465 24, 520 18"/>
+              </svg>
+              <div class="chart-axis">
+                <span>Oct 20</span><span>Oct 27</span><span>Nov 03</span><span>Nov 10</span><span>Nov 17</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ws-card activity-card">
+            <div class="ws-card-head">Recent Insights <span id="card-pal-name">Aurora</span></div>
+            <div class="insight-list">
+              <div class="insight-row">
+                <div class="insight-left"><span class="insight-dot ok"></span><span class="insight-title">Checkout funnel conversion +11.4%</span></div>
+                <span class="insight-time">2m ago</span>
+              </div>
+              <div class="insight-row">
+                <div class="insight-left"><span class="insight-dot"></span><span class="insight-title">Mobile onboarding v2 at 100%</span></div>
+                <span class="insight-time">18m ago</span>
+              </div>
+              <div class="insight-row">
+                <div class="insight-left"><span class="insight-dot ok"></span><span class="insight-title">EU-West edge latency stabilized</span></div>
+                <span class="insight-time">1h ago</span>
+              </div>
+              <div class="insight-row">
+                <div class="insight-left"><span class="insight-dot"></span><span class="insight-title">Weekly cohort report generated</span></div>
+                <span class="insight-time">3h ago</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -466,6 +512,7 @@ const root = document.documentElement, area = $('#area');
 /* 1. Single Unified Floating Preview Window */
 const halo = createShockwaveHalo(area, { exclude: '.aip', onEnd: () => updateMode() });
 const pill = createAIPill(area, {
+  placeholder: 'Ask AI about Q4 metrics, cohorts, or anomalies...',
   bottom: 20,
   alwaysOpen: true,
   onSubmit: text => {
@@ -514,13 +561,7 @@ function renderPaletteCards() {
 
 function renderTokenList() {
   const isDark = root.dataset.theme === 'dark';
-  const rings = isDark ? PALETTES[currentPalette].dark : PALETTES[currentPalette].light;
-  $('#card-pal-name').textContent = `${currentPalette} (${isDark ? 'dark' : 'light'})`;
-  $('#token-list').innerHTML = rings.map((rgb, i) => `
-    <div class="token-row">
-      <span class="token-left"><span class="token-swatch" style="background:rgb(${rgb})"></span>Ring ${i + 1}</span>
-      <span class="token-val">rgb(${rgb.join(', ')})</span>
-    </div>`).join('');
+  $('#card-pal-name').textContent = `${currentPalette} · ${isDark ? 'dark' : 'light'}`;
 }
 
 /* 3. Theme Toggle */
@@ -736,8 +777,6 @@ function syncParams() {
   $('#v-width').textContent = ringWidth + 'px';
   $('#v-bend').textContent = bendPx + 'px';
   $('#v-dur').textContent = duration + 'ms';
-  $('#kpi-width').textContent = ringWidth + ' px';
-  $('#kpi-bend').textContent = bendPx + ' px';
   halo.setOptions({ ringWidth, bendPx, duration });
   $('#params-code').textContent = `const halo = createShockwaveHalo(area, {
   palette: '${currentPalette}',
@@ -776,22 +815,6 @@ function bindCopy(btnId, preId) {
 bindCopy('#copy-install', '#install-code');
 bindCopy('#copy-trigger', '#trigger-code');
 
-/* Render graph SVG wires */
-const graph = $('#graph'), wires = $('#wires');
-function layoutGraph() {
-  const r = graph.getBoundingClientRect();
-  wires.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
-  const pts = [...graph.querySelectorAll('.node')].map(n => {
-    n.style.left = n.dataset.x + '%'; n.style.top = n.dataset.y + '%';
-    return [n.dataset.x / 100 * r.width, n.dataset.y / 100 * r.height];
-  });
-  wires.innerHTML = [[0,2],[1,2],[2,3],[2,4]].map(([a, b]) => {
-    const [x1, y1] = pts[a], [x2, y2] = pts[b], mx = (x1 + x2) / 2;
-    return `<path class="wire" d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}"/>`;
-  }).join('');
-}
-layoutGraph(); addEventListener('resize', layoutGraph);
-
 /* Expand / restore preview Dashboard as viewport floating modal */
 const floatStage = $('#float-stage');
 const stageBackdrop = $('#stage-backdrop');
@@ -803,10 +826,7 @@ function setExpanded(next) {
   expandBtn.setAttribute('aria-expanded', String(next));
   expandBtn.textContent = next ? '⤡ 还原' : '⤢ 放大';
   document.body.style.overflow = next ? 'hidden' : '';
-  requestAnimationFrame(() => {
-    layoutGraph();
-    halo.invalidate?.();
-  });
+  requestAnimationFrame(() => halo.invalidate?.());
 }
 expandBtn.onclick = () => setExpanded(!floatStage.classList.contains('is-expanded'));
 stageBackdrop.onclick = () => setExpanded(false);
