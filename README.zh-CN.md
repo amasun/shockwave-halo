@@ -34,17 +34,18 @@
 
 ## 让你的 AI 助手一键接入
 
-把下面这段复制给 **Cursor、Claude Code、Codex** 或任何编程助手即可。它适用于任何触发时机，不只是 AI 输入框：助手会先看你的项目，建议值得标记的时刻，再只接入你选中的那些。提示词用英文写，AI 都能理解，你也可以直接用中文补充自己的需求。
+把下面这段复制给 **Cursor、Claude Code、Codex** 或任何编程助手。大多数人只需要这一段。它适用于任何触发时机，不只是 AI 输入框：助手会先看你的项目，建议值得标记的时刻，再只接入你选中的那些。提示词用英文写，AI 都能理解，你也可以直接用中文补充自己的需求。
 
 ```text
-Add shockwave-halo (https://github.com/amasun/shockwave-halo) to my web app. Read its README first.
+Add shockwave-halo (https://github.com/amasun/shockwave-halo) to my web app. Read its README, and the commented option lists at the top of shockwave-halo.js, first.
 
 It is a faint halo of light that sweeps across the page from a chosen spot and gently bends the content as it passes: a visual punctuation mark for one moment. It must not change how the page looks or behaves otherwise, and nothing should run while the page is at rest.
 
-1. Look at my app and suggest 2-4 moments worth marking, for example: focusing or sending an AI or search input, submitting a form, a successful save or publish, switching mode, view or route, a notification arriving, a button press. For each one, say which element or point the halo should start from.
+1. If I have already told you what to trigger it on, skip steps 1 and 2 and just do that. Otherwise, look at my app and suggest 2-4 moments worth marking, for example: focusing or sending an AI or search input, submitting a form, a successful save or publish, switching mode, view or route, a notification arriving, a button press. For each one, say which element or point the halo should start from.
 2. Wait for me to pick, then wire up only those. Start each halo from the element or point that caused it.
-3. Mount it on a non-scrolling content container, keep toolbars clear, follow my light/dark mode, and respect reduced motion.
-4. When you are done, tell me in plain words how to change the trigger, the starting point, the color and the strength.
+3. Use the defaults for everything else (Aurora palette, all effect layers on) and tell me what you chose.
+4. Mount it on a non-scrolling content container, keep toolbars clear, follow my light/dark mode, and respect reduced motion. Keep anything that animates (such as an input) out of the snapshot and above the halo.
+5. When you are done, tell me in plain words how to change the trigger, the starting point, the color and the strength.
 ```
 
 已经知道要什么？用自己的话说就行：
@@ -53,38 +54,14 @@ It is a faint halo of light that sweeps across the page from a chosen spot and g
 - *“用户按 ⌘K 打开命令面板时，用 Frost 配色。”*
 - *“用户切换到专注模式时触发，从他按下的那个按钮发出。”*
 - *“每次保存成功时从“保存”按钮发出，并且别盖到工具栏。”*
+- *“帮我评估营销页哪里适合加：关键按钮要，后台列表不要。”*
 
-需要更精细的控制？请看下文的[详细提示词](#让-ai-帮你接入或从零开始)。
-
----
-
-## 包含什么
-
-两个**零依赖**、**不挑框架**的原生 ES 模块（React、Vue、Svelte 或纯 HTML 都能直接用）：
-
-| 文件 | 角色 | 说明 |
-|---|---|---|
-| [`shockwave-halo.js`](shockwave-halo.js) | 核心光环 | 负责光环动画、透镜弯折、色散与边框高光；拿不到页面截图时自动降级为纯色环叠加，不影响使用 |
-| [`ai-pill.js`](ai-pill.js) | 可选输入框 | 胶囊式 AI 输入框，点开会弹性展开成卡片，边缘带一圈转动的金属高光 |
-| [`index.html`](index.html) | 完整示例 | 展示起点切换、七套配色、明暗主题与减弱动效 |
-
----
-## 让 AI 帮你接入或从零开始
-
-不用自己研究代码或看懂参数。你可以直接抄下面任意一句发给 **Claude Code / Codex / Cursor**，或者展开下方完整提示词整段复制给 AI，它会一步步确认你的需求并完成改造。
-
-**常见场景示例：**
-- *“我的博客是暗色主题，帮我接入 shockwave-halo，用 `Frost` 配色，只在聚焦搜索框时触发。”*
-- *“我有个营销页和后台系统，帮我评估哪些地方适合加 shockwave-halo：关键按钮要，后台列表不要。”*
-- *“下单成功时触发，从“支付”按钮发出，用我们的品牌蓝。”*
-- *“我在写一个 SwiftUI iOS App，请按「从零开始」里的配方用 Metal 帮我实现一套同样的光环效果。”*
-
-### 接入提示词
-
-> 适合：**你已经有网页项目**（React / Vue / Svelte / 原生 HTML / Electron / Tauri），想直接把现成组件接进去。
+需要更多控制？展开下面任意一项：
 
 <details>
-<summary><strong>点击展开并复制「接入提示词」</strong></summary>
+<summary><strong>想让 AI 逐项问你每个选择？用详细的「接入提示词」</strong></summary>
+
+> 适合：**你已经有网页项目**（React / Vue / Svelte / 原生 HTML / Electron / Tauri），想直接把现成组件接进去。
 
 ```text
 Add the shockwave halo from https://github.com/amasun/shockwave-halo to my web app: when a moment I choose happens (by default, the AI input being clicked or focused), a faint halo of light sweeps across the page's content area from where it happened and fades out, bending the page a few pixels as it passes. Use the library as it is; do not copy its shader into my code. Do not change what the page does or how it looks at rest.
@@ -123,12 +100,10 @@ Check, and tell me what you checked:
 
 </details>
 
-### 从零开始
+<details>
+<summary><strong>不是网页应用，或不想依赖本仓库？用纯 Prompt「从零开始」</strong></summary>
 
 > 适合：**不引用本站项目，纯靠 Prompt 让 AI 从零制作**。无论是做手机 App / 桌面客户端（iOS Metal、Android AGSL、Flutter、Rust 等），还是想在自己的代码和设计系统里手写整套效果，都可以直接复制下面这段完整提示词给 AI。
-
-<details>
-<summary><strong>点击展开并复制「从零开始」提示词</strong></summary>
 
 ```text
 Add a shockwave halo to my product: when something triggers it (by default, clicking or focusing the AI input), a faint halo of light sweeps across the page from one place and fades out, bending the page a few pixels as it passes, with a slight color split, in my dark and light modes. Build it inside my code and design system; do not change what the page does or how it looks at rest. Every value below is a default to start from, not a requirement.
@@ -216,6 +191,18 @@ These are suggestions from what worked in the demo and what each platform offers
 ```
 
 </details>
+
+---
+
+## 包含什么
+
+两个**零依赖**、**不挑框架**的原生 ES 模块（React、Vue、Svelte 或纯 HTML 都能直接用）：
+
+| 文件 | 角色 | 说明 |
+|---|---|---|
+| [`shockwave-halo.js`](shockwave-halo.js) | 核心光环 | 负责光环动画、透镜弯折、色散与边框高光；拿不到页面截图时自动降级为纯色环叠加，不影响使用 |
+| [`ai-pill.js`](ai-pill.js) | 可选输入框 | 胶囊式 AI 输入框，点开会弹性展开成卡片，边缘带一圈转动的金属高光 |
+| [`index.html`](index.html) | 完整示例 | 展示起点切换、七套配色、明暗主题与减弱动效 |
 
 ---
 

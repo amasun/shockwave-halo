@@ -34,17 +34,18 @@
 
 ## Add It With Your AI Agent
 
-Copy this into **Cursor, Claude Code, Codex**, or any coding agent. It works for any trigger, not just an AI input: the agent looks at your app, suggests the moments worth marking, and wires up the ones you pick.
+Copy this into **Cursor, Claude Code, Codex**, or any coding agent. Most people only need this one prompt. It works for any trigger, not just an AI input: the agent looks at your app, suggests the moments worth marking, and wires up the ones you pick.
 
 ```text
-Add shockwave-halo (https://github.com/amasun/shockwave-halo) to my web app. Read its README first.
+Add shockwave-halo (https://github.com/amasun/shockwave-halo) to my web app. Read its README, and the commented option lists at the top of shockwave-halo.js, first.
 
 It is a faint halo of light that sweeps across the page from a chosen spot and gently bends the content as it passes: a visual punctuation mark for one moment. It must not change how the page looks or behaves otherwise, and nothing should run while the page is at rest.
 
-1. Look at my app and suggest 2-4 moments worth marking, for example: focusing or sending an AI or search input, submitting a form, a successful save or publish, switching mode, view or route, a notification arriving, a button press. For each one, say which element or point the halo should start from.
+1. If I have already told you what to trigger it on, skip steps 1 and 2 and just do that. Otherwise, look at my app and suggest 2-4 moments worth marking, for example: focusing or sending an AI or search input, submitting a form, a successful save or publish, switching mode, view or route, a notification arriving, a button press. For each one, say which element or point the halo should start from.
 2. Wait for me to pick, then wire up only those. Start each halo from the element or point that caused it.
-3. Mount it on a non-scrolling content container, keep toolbars clear, follow my light/dark mode, and respect reduced motion.
-4. When you are done, tell me in plain words how to change the trigger, the starting point, the color and the strength.
+3. Use the defaults for everything else (Aurora palette, all effect layers on) and tell me what you chose.
+4. Mount it on a non-scrolling content container, keep toolbars clear, follow my light/dark mode, and respect reduced motion. Keep anything that animates (such as an input) out of the snapshot and above the halo.
+5. When you are done, tell me in plain words how to change the trigger, the starting point, the color and the strength.
 ```
 
 Already know what you want? Say it your way:
@@ -53,38 +54,14 @@ Already know what you want? Say it your way:
 - *"Use the Frost palette when someone opens the command palette with ⌘K."*
 - *"Trigger it when the user switches to focus mode, from the button they pressed."*
 - *"On every successful save, from the Save button, and keep the toolbar clear."*
+- *"Check where it fits on our marketing site: key landing-page buttons yes, dashboard tables no."*
 
-Need full control? See the [detailed prompts](#let-ai-wire-it-up-or-build-it-from-scratch) below.
-
----
-
-## What's Inside
-
-Two **zero-dependency**, **framework-agnostic** ES modules (works with React, Vue, Svelte, or plain HTML):
-
-| File | Role | Summary |
-|---|---|---|
-| [`shockwave-halo.js`](shockwave-halo.js) | Core Halo | Drives the halo sweep, lens bend, color split, and border glints; falls back gracefully to color rings only when a snapshot isn't available |
-| [`ai-pill.js`](ai-pill.js) | Optional Input | Pill-shaped AI input that springs open into a card with a turning metal highlight border |
-| [`index.html`](index.html) | Full Demo | Interactive showcase with origin switching, 7 palettes, light/dark mode, and reduced motion |
-
----
-## Let AI Wire It Up or Build It from Scratch
-
-You don't need to read the shader math or figure out all the options yourself. Copy one of the quick example prompts below to **Claude Code, Codex, or Cursor**, or expand the full prompt blocks right here.
-
-**Example prompts:**
-- *"My blog uses a dark theme. Add shockwave-halo with the `Frost` palette, triggered only when someone focuses the search bar."*
-- *"We have a marketing site and a logged-in dashboard. Check where shockwave-halo fits: key landing-page buttons yes, dashboard tables no."*
-- *"Fire it when an order is placed, from the Pay button, in our brand blue."*
-- *"I'm building a SwiftUI iOS app. Implement the same shockwave halo effect in Metal following the Build from Scratch spec below."*
-
-### Integrate Prompt
-
-> Best for: **You already have a web app** (React, Vue, Svelte, vanilla HTML, Electron, Tauri) and want to drop in the ready-made library.
+Need more control? Open one of these:
 
 <details>
-<summary><strong>Click to expand & copy the Integrate Prompt</strong></summary>
+<summary><strong>Want the agent to ask you about every option? Use the detailed Integrate Prompt</strong></summary>
+
+> Best for: **You already have a web app** (React, Vue, Svelte, vanilla HTML, Electron, Tauri) and want to drop in the ready-made library.
 
 ```text
 Add the shockwave halo from https://github.com/amasun/shockwave-halo to my web app: when a moment I choose happens (by default, the AI input being clicked or focused), a faint halo of light sweeps across the page's content area from where it happened and fades out, bending the page a few pixels as it passes. Use the library as it is; do not copy its shader into my code. Do not change what the page does or how it looks at rest.
@@ -123,12 +100,10 @@ Check, and tell me what you checked:
 
 </details>
 
-### Build from Scratch
+<details>
+<summary><strong>Not a web app, or no dependency on this repo? Build from scratch with a standalone prompt</strong></summary>
 
 > Best for: **Building completely from scratch with a standalone prompt—no dependency on or reference to this repo.** Ideal for mobile/desktop apps (iOS Metal, Android AGSL, Flutter, Rust, etc.) or custom implementations inside your own design system.
-
-<details>
-<summary><strong>Click to expand & copy the Build from Scratch Prompt</strong></summary>
 
 ```text
 Add a shockwave halo to my product: when something triggers it (by default, clicking or focusing the AI input), a faint halo of light sweeps across the page from one place and fades out, bending the page a few pixels as it passes, with a slight color split, in my dark and light modes. Build it inside my code and design system; do not change what the page does or how it looks at rest. Every value below is a default to start from, not a requirement.
@@ -216,6 +191,18 @@ These are suggestions from what worked in the demo and what each platform offers
 ```
 
 </details>
+
+---
+
+## What's Inside
+
+Two **zero-dependency**, **framework-agnostic** ES modules (works with React, Vue, Svelte, or plain HTML):
+
+| File | Role | Summary |
+|---|---|---|
+| [`shockwave-halo.js`](shockwave-halo.js) | Core Halo | Drives the halo sweep, lens bend, color split, and border glints; falls back gracefully to color rings only when a snapshot isn't available |
+| [`ai-pill.js`](ai-pill.js) | Optional Input | Pill-shaped AI input that springs open into a card with a turning metal highlight border |
+| [`index.html`](index.html) | Full Demo | Interactive showcase with origin switching, 7 palettes, light/dark mode, and reduced motion |
 
 ---
 
