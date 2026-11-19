@@ -17,7 +17,7 @@ Then ask me, one at a time, offering the default each time:
 1. Trigger: which of those moments should fire it (default: focusing or clicking the AI input, if there is one), or others such as a keyboard shortcut, sending a message, the AI starting to answer, a successful save or publish, entering a focused view; and re-trigger while running: restart (default) or ignore.
 2. Origin: the element that caused it (default), the point that was clicked, the middle of the area, or an edge.
 3. Palette: Aurora (default), Halo, Frost, Spark, or my brand colors (then derive four rings inside to outside, with a brighter dark version and a softer light version).
-4. Layers: bend, color split, edge refraction and line glints are all on by default; ask whether to turn any off.
+4. Layers: bend, color split, edge refraction and line glints are all on by default, and a dot-matrix wave (a faint grid of white or black dots that rides the wave, as circles, squares, four-point stars, crosses or grid lines) is off by default; ask whether to turn any off, or the dot matrix on.
 5. Input (only if the trigger is an AI input): keep my AI input as it is (default), or replace it with the library's `ai-pill.js`.
 
 Wait for my go-ahead, then integrate it:

@@ -77,7 +77,7 @@ Then ask me, one at a time, offering the default each time:
 1. Trigger: which of those moments should fire it (default: focusing or clicking the AI input, if there is one), or others such as a keyboard shortcut, sending a message, the AI starting to answer, a successful save or publish, entering a focused view; and re-trigger while running: restart (default) or ignore.
 2. Origin: the element that caused it (default), the point that was clicked, the middle of the area, or an edge.
 3. Palette: Aurora (default), Halo, Frost, Spark, or my brand colors (then derive four rings inside to outside, with a brighter dark version and a softer light version).
-4. Layers: bend, color split, edge refraction and line glints are all on by default; ask whether to turn any off.
+4. Layers: bend, color split, edge refraction and line glints are all on by default, and a dot-matrix wave (a faint grid of white or black dots that rides the wave, as circles, squares, four-point stars, crosses or grid lines) is off by default; ask whether to turn any off, or the dot matrix on.
 5. Input (only if the trigger is an AI input): keep my AI input as it is (default), or replace it with the library's `ai-pill.js`.
 
 Wait for my go-ahead, then integrate it:
@@ -111,7 +111,7 @@ Add a shockwave halo to my product: when something triggers it (by default, clic
 First look at my app (section 0). Then ask me these one at a time, offering the default each time, and wait for each answer:
 1. Trigger: what starts the halo (clicking or focusing the AI input, a keyboard shortcut, sending a message, the AI starting to answer, something else), and what happens if it is triggered again while one is running (restart, or ignore).
 2. Origin: where it spreads from (the AI input, a button, the bottom edge of the page, the point that was clicked, the middle of a panel), and over which area (the page's content area, one panel, the whole window). Toolbars always stay clear.
-3. Layers: the color rings (section 3) are always on; ask yes or no for each of the others: the bend (section 4), the color split, the refraction at the edges, the glints on lines and borders. The bend, the split and the refraction need the page as an image (section 6), so say what each costs on my platform.
+3. Layers: the color rings (section 3) are always on; ask yes or no for each of the others: the bend (section 4), the color split, the refraction at the edges, the glints on lines and borders, and the optional dot-matrix wave (section 4, off by default). The bend, the split and the refraction need the page as an image (section 6), so say what each costs on my platform; the dot matrix does not need one.
 4. Colors: one of the four palettes in section 3, or my brand colors (then derive four rings, and a dark and a light version, from them), and which modes my app has.
 5. The input: leave my AI input as it is (the default), or turn it into the pill that springs open with a metal edge (section 1).
 Then propose how you will build it on my platform (section 6 is a starting point, not a prescription), with the cost and any fallback, and wait for my go-ahead.
@@ -160,6 +160,7 @@ Then propose how you will build it on my platform (section 6 is a starting point
 - The frame holds the page: fade the lens to nothing over the last 56px before the page's edge, so the edge stays straight.
 - The page's lines catch the light: where the halo passes, its rules, borders and the outlines of chips, cards and nodes brighten toward the ring color (mixed 20% toward white), at the halo's strength times exp(-1.4 * (x / 2)^2) times 0.3 on light and 0.14 on dark (a faint glint, not a redrawn border), read at their bent position so the glint follows them. Text and icons never light up. To find the lines, use a second capture of the page with every rule and border drawn white at its own width on black, and nothing else (no text, icons, pictures, fills or shadows); light the page where that capture is white, so a 1px border glints as 1px. Without a capture (a retrofit in the DOM), give each bordered element and divider a CSS variable from 0 to 1 by its distance to the halo's front each frame, and mix its border color toward the ring color by it.
 - The edge as a glass bevel: at the sides and the bottom (not under a toolbar), where the halo reaches the edge, read the last 60px of the page from up to 22px further in (22 * (1 - d/60)^2 * the halo's strength there), so content beside the edge stretches toward it. Where the halo meets the edge, add a thin line of light (exp(-d / 7)) in the ring color mixed 45% toward white.
+- Optional dot-matrix wave, off by default: a fixed grid of small shapes (default spacing 14px, radius 1.2px at the crest) drawn over everything, visible only where the wave passes. With x as in section 3, weight = exp(-0.8 * x^2); a shape's radius is the crest radius times that weight (shapes grow towards the crest and shrink away from it) and its alpha is 0.22 * weight * the halo's strength. The shapes are not displaced by the bend and not tinted: plain white on dark, plain black on light, cross-faded with the theme. Shapes: circle, square, four-point star (a concave star with sharp tips, about 2.2 times the radius), cross, grid lines. It needs no page image, so it also works in the overlay-only fallback. Off with reduced motion.
 
 5. Rhythm
 - On the trigger: if the input opens, it dips to 97% for 90ms, springs open (580ms) and its edge highlight turns (900ms); the halo leaves 40ms after the opening starts and runs 1000ms. Without the input, the halo runs on the trigger.
@@ -216,6 +217,7 @@ These are suggestions from what worked in the demo and what each platform offers
 | **配色** | “用 Frost 配色”“换成我们的品牌蓝”：七套内置配色（Aurora、Halo、Frost、Spark、Ocean、Rose、Silver），或自定义一组四色 |
 | **亮 / 暗主题** | 自动跟随站点的暗色模式，切换时平滑过渡 |
 | **效果图层** | “不要色散”“去掉玻璃边缘”“只留光环，不要弯折页面”：页面弯折、色散、玻璃边缘、线条高光都可以单独关闭 |
+| **点阵冲击波**（可选，默认关闭） | “加一层点阵冲击波”“把点换成星形”“点距再大一点”“再淡一点”：一层浅浅的白色或黑色点阵跟着冲击波散开，越靠近波峰点越大；可选圆点、方形、四角星、十字、网格线 |
 | **强度与速度** | “弱一点”“光环再宽一点”“稍微快一点”：光环宽度、弯折强度、时长 |
 | **作用范围** | “别盖到工具栏”“输入框要在光环之上”：选择作用区域、排除元素、指定哪些边缘作为玻璃边 |
 | **何时触发** | “聚焦时”“点击时”“AI 开始回答时”“运行中忽略新的触发” |

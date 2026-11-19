@@ -21,11 +21,16 @@ const DEFAULTS = {
   origin: 'bottom',          // Element | {x,y} (client px) | 'bottom'|'top'|'left'|'right'|'center'
   palette: 'Aurora',         // palette name | { dark: [[r,g,b]×4], light: [[r,g,b]×4] }
   theme: 'auto',             // 'auto' | 'light' | 'dark' | () => 'light'|'dark'
-  layers: { bend: true, split: true, bevel: true, glints: true },
+  layers: { bend: true, split: true, bevel: true, glints: true, dots: false },   // dots = the optional dot-matrix wave (off by default)
   bevelEdges: ['left', 'right', 'bottom'],   // edges that act as glass (never the edge under a toolbar)
   duration: 1000,            // ms
   ringWidth: 110,            // px, w
   bendPx: 7,                 // px, lens strength
+  dotShape: 'circle',        // dot-matrix layer: 'circle' | 'square' | 'star' (four-point) | 'cross' | 'grid'
+  dotSpacing: 14,            // px between dot centres
+  dotSize: 1.2,              // px, dot radius at the crest of the wave (dots grow towards the crest and shrink away from it)
+  dotOpacity: 0.22,          // 0-1, alpha at the crest
+  dotTone: 'auto',           // 'auto' (white on dark, black on light) | 'white' | 'black'
   arcDepth: null,            // px; edge origins put the centre this far beyond the edge (default ⅔ of the edge length)
   retrigger: 'restart',      // 'restart' | 'ignore'
   reducedMotion: 'auto',     // 'auto' | true | false
@@ -51,7 +56,8 @@ uniform vec2 uRes; uniform float uDpr;
 uniform vec4 uB;      // snapshot origin of the padding box (border left, top) and snapshot size, CSS px
 uniform vec2 uC; uniform float uR, uS, uW, uPx;
 uniform vec3 uPD[4], uPL[4];
-uniform float uDark, uBend, uSplit, uGlint, uHasTex;
+uniform float uDark, uBend, uSplit, uGlint, uHasTex, uDotOn, uDotTone;
+uniform vec4 uDot;     // dot spacing, dot radius at the crest, opacity at the crest, shape id
 uniform vec4 uBevel;   // left, right, bottom, top
 out vec4 o;
 vec3 ring(float x, vec3 P[4]){
@@ -60,6 +66,16 @@ vec3 ring(float x, vec3 P[4]){
   return acc / max(ws, 1e-5);
 }
 vec4 page(vec2 q){ q = clamp(q, vec2(0.), uRes); return texture(uPage, (q + uB.xy) / uB.zw); }
+// signed distance in px to the dot shape centred at the origin (negative inside); r is the dot radius
+float dotSdf(vec2 q, float r, float shape){
+  if (shape < .5) return length(q) - r;                                          // circle
+  if (shape < 1.5) return max(abs(q.x), abs(q.y)) - r;                           // square
+  if (shape < 2.5) { float R = r * 2.2; vec2 a = abs(q) / max(R, 1e-3); return (sqrt(a.x) + sqrt(a.y) - 1.) * R * .5; }   // four-point star
+  if (shape < 3.5) { float t = r * .38, l = r * 1.5; return min(max(abs(q.x) - l, abs(q.y) - t), max(abs(q.x) - t, abs(q.y) - l)); }   // cross
+  return min(abs(q.x), abs(q.y)) - r * .4;                                       // grid lines
+}
+// translucent white or black dots laid over what is already drawn (premultiplied alpha)
+vec4 withDots(vec4 b, float ad){ float tone = uDotTone < 0. ? uDark : uDotTone; return vec4(b.rgb * (1. - ad) + vec3(tone) * ad, b.a * (1. - ad) + ad); }
 void main(){
   vec2 p = vec2(gl_FragCoord.x, uRes.y * uDpr - gl_FragCoord.y) / uDpr;
   vec2 d = p - uC; float dist = length(d); vec2 dir = d / max(dist, 1e-3);
@@ -68,6 +84,17 @@ void main(){
   if (cover <= 0. || uS <= 0.) { o = vec4(0.); return; }
   float a = uS * exp(-1.1 * pow(x * .5, 2.));
   vec3 rD = ring(x, uPD), rL = ring(x, uPL);
+
+  // dot-matrix wave: a fixed grid, drawn only where the wave passes, growing towards the crest (x = 0)
+  float ad = 0.;
+  if (uDotOn > .5) {
+    float s = max(uDot.x, 2.);
+    vec2 g = (fract(p / s) - .5) * s;
+    float prof = exp(-.8 * x * x);
+    float px = 1. / uDpr;
+    float cov = smoothstep(px * .75, -px * .75, dotSdf(g, uDot.y * prof, uDot.w));
+    ad = clamp(uDot.z * prof * uS * cov, 0., 1.) * cover;
+  }
 
   float dl = p.x, dr = uRes.x - p.x, db = uRes.y - p.y, dt = p.y;
   float lens = smoothstep(0., 56., min(min(dl, dr), min(db, dt)));
@@ -91,7 +118,7 @@ void main(){
     vec3 cl = rL * k * 1.2 + mix(rL, vec3(1.), .45) * eline * .5;
     vec3 cd = rD * a * .45 + mix(rD, vec3(1.), .45) * eline * .5;
     float al = (k + eline * .5) * (1. - uDark);   // alpha 0 on dark = additive, close to screen
-    o = vec4(mix(cl, cd, uDark), al) * cover;
+    o = withDots(vec4(mix(cl, cd, uDark), al) * cover, ad);
     return;
   }
 
@@ -112,10 +139,11 @@ void main(){
   vec3 cd = 1. - (1. - pd) * (1. - rD * a * .3 * 1.5);
   cd = 1. - (1. - cd) * (1. - mix(rD, vec3(1.), .45) * eline * .6);
 
-  o = vec4(clamp(mix(cl, cd, uDark), 0., 1.), 1.) * cover;
+  o = withDots(vec4(clamp(mix(cl, cd, uDark), 0., 1.), 1.) * cover, ad);
 }`;
 
-const UNIFORMS = ['uPage','uLines','uRes','uDpr','uB','uC','uR','uS','uW','uPx','uPD','uPL','uDark','uBend','uSplit','uGlint','uHasTex','uBevel'];
+const UNIFORMS = ['uPage','uLines','uRes','uDpr','uB','uC','uR','uS','uW','uPx','uPD','uPL','uDark','uBend','uSplit','uGlint','uHasTex','uBevel','uDot','uDotOn','uDotTone'];
+const DOT_SHAPES = ['circle', 'square', 'star', 'cross', 'grid'];
 
 function detectDark() {
   const h = document.documentElement;
@@ -389,6 +417,9 @@ export function createShockwaveHalo(area, options = {}) {
     gl.uniform1f(U.uGlint, L.glints ? motion : 0);
     gl.uniform4f(U.uBevel, be.includes('left') * bev, be.includes('right') * bev, be.includes('bottom') * bev, be.includes('top') * bev);
     gl.uniform1f(U.uHasTex, snap.ok ? 1 : 0);
+    gl.uniform1f(U.uDotOn, L.dots ? motion : 0);
+    gl.uniform4f(U.uDot, o.dotSpacing, o.dotSize, o.dotOpacity, Math.max(0, DOT_SHAPES.indexOf(o.dotShape)));
+    gl.uniform1f(U.uDotTone, o.dotTone === 'white' ? 1 : o.dotTone === 'black' ? 0 : -1);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texPage);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texLines);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
